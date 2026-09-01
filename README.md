@@ -95,6 +95,9 @@ assets/                     shared CSS and JS
 index.html                  the chapter index
 ```
 
+Chapters share one structure, written down in **[STRUCTURE.md](STRUCTURE.md)** —
+the shell, the code card, and the rules that keep 24 files reading as one book.
+
 ## Notes on the code
 
 Java 21, Spring Boot 3.3, Maven. Constructor injection with final fields,

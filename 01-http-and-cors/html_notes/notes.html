@@ -11276,19 +11276,6 @@ uvicorn.run("main:app", host="0.0.0.0", port=443,
 
     <script>
       hljs.highlightAll();
-      document.querySelectorAll("[data-cb]").forEach((block) => {
-        const btns = block.querySelectorAll(".code-tabs button");
-        const panels = block.querySelectorAll(".code-panel");
-        btns.forEach((btn) =>
-          btn.addEventListener("click", () => {
-            const lang = btn.dataset.lang;
-            btns.forEach((b) => b.classList.toggle("on", b === btn));
-            panels.forEach((p) =>
-              p.classList.toggle("on", p.dataset.panel === lang),
-            );
-          }),
-        );
-      });
     </script>
     <!-- CHAPTER NAVIGATION -->
     <nav class="chapter-nav" id="chapterNav">

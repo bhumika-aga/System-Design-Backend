@@ -126,6 +126,23 @@
 }
 
 /* Italic caption under a card. */
+/* A caption inside the bar, naming what the example shows.
+   (The bare .code-cap below is the italic caption under a card.) */
+.code-bar .code-cap {
+  margin-left: auto;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--code-faint, #9c948a);
+  padding: 13px 0 13px 16px;
+  text-align: right;
+  font-style: normal;
+}
+@media (max-width: 720px) {
+  .code-bar .code-cap {
+    display: none;
+  }
+}
+
 .code-cap {
   font-size: 13px;
   color: var(--ink-soft);

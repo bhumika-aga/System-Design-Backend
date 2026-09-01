@@ -446,9 +446,6 @@
 }
 :root[data-theme="dark"] .code-tabs,
 :root[data-theme="dark"] .code-head,
-:root[data-theme="dark"] .code-run-wrap {
-  background: var(--code-bar) !important;
-}
 :root[data-theme="dark"] pre code,
 :root[data-theme="dark"] .code-body code {
   color: var(--code-ink) !important;

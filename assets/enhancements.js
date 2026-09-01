@@ -46,107 +46,6 @@
     });
   }
 
-  // --- Code Runner (Piston API, free, no auth) ---
-  var PISTON_URL = 'https://emkc.org/api/v2/piston/execute';
-
-  var RUNTIMES = {
-    java: { language: 'java', version: '15.0.2', label: 'Run Java' },
-    python: { language: 'python', version: '3.10.0', label: 'Run Python' }
-  };
-
-  /* Piston compiles a single file with no dependencies on the classpath, so a
-     Spring Boot snippet can never run there. Only offer the button for code
-     that is genuinely self-contained: a class with a main method. */
-  function isRunnableJava(code) {
-    return /\bstatic\s+void\s+main\s*\(/.test(code);
-  }
-
-  function initCodeRunner() {
-    var blocks = document.querySelectorAll('[data-cb]');
-    blocks.forEach(function (block) {
-      var javaPanel = block.querySelector('[data-panel="java"]');
-      var pyPanel = block.querySelector('[data-panel="py"]');
-
-      if (javaPanel) {
-        var codeEl = javaPanel.querySelector('code');
-        if (codeEl && isRunnableJava(codeEl.textContent)) addRunButton(javaPanel, block, 'java');
-      }
-      if (pyPanel) addRunButton(pyPanel, block, 'python');
-    });
-  }
-
-  function addRunButton(panel, block, lang) {
-    var runtime = RUNTIMES[lang];
-    if (!runtime) return;
-
-    var wrap = document.createElement('div');
-    wrap.className = 'code-run-wrap';
-
-    var btn = document.createElement('button');
-    btn.className = 'code-run-btn';
-    btn.textContent = runtime.label;
-    btn.setAttribute('data-lang', runtime.language);
-    btn.setAttribute('data-version', runtime.version);
-
-    btn.addEventListener('click', function () {
-      runCode(panel, block, btn, runtime.language, runtime.version);
-    });
-    wrap.appendChild(btn);
-
-    panel.appendChild(wrap);
-  }
-
-  function runCode(panel, block, btn, lang, version) {
-    var codeEl = panel.querySelector('code');
-    if (!codeEl) return;
-    var code = codeEl.textContent;
-
-    btn.classList.add('loading');
-    var origText = btn.textContent;
-    btn.textContent = 'Running...';
-
-    // Remove existing output
-    var existing = block.querySelectorAll('.code-output-panel');
-    existing.forEach(function (e) { e.remove(); });
-
-    fetch(PISTON_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        language: lang,
-        version: version,
-        files: [{ content: code }]
-      })
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        var output = '';
-        var isErr = false;
-        if (data.run) {
-          output = (data.run.stdout || '') + (data.run.stderr || '');
-          if (data.run.code !== 0) isErr = true;
-        } else if (data.message) {
-          output = data.message;
-          isErr = true;
-        }
-        showOutput(block, output || '(no output)', isErr);
-      })
-      .catch(function (err) {
-        showOutput(block, 'Execution failed: ' + err.message + '\nTry running locally instead.', true);
-      })
-      .finally(function () {
-        btn.classList.remove('loading');
-        btn.textContent = origText;
-      });
-  }
-
-  function showOutput(block, text, isErr) {
-    var el = document.createElement('div');
-    el.className = 'code-output-panel' + (isErr ? ' error' : '');
-    el.textContent = text;
-    block.appendChild(el);
-  }
-
   // ==========================================================================
   //  HOMEPAGE ENHANCEMENTS
   // ==========================================================================
@@ -3046,7 +2945,6 @@
     if (isChapter) {
       try { initProgressBar(); } catch (e) { console.warn('[BFP] initProgressBar failed:', e); }
       try { initKeyboardNav(); } catch (e) { console.warn('[BFP] initKeyboardNav failed:', e); }
-      try { initCodeRunner(); } catch (e) { console.warn('[BFP] initCodeRunner failed:', e); }
     }
     if (isHomepage) {
       try { initSearch(); } catch (e) { console.warn('[BFP] initSearch failed:', e); }

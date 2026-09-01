@@ -241,73 +241,6 @@
 }
 
 /* ---------- Code Runner ---------- */
-.code-run-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 6px 12px;
-  background: #1a1813;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-.code-run-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(var(--accent-rgb), 0.14);
-  color: var(--accent);
-  border: 1px solid rgba(var(--accent-rgb), 0.25);
-  border-radius: 6px;
-  padding: 5px 14px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.code-run-btn:hover {
-  background: rgba(var(--accent-rgb), 0.22);
-  color: #ffffff;
-  border-color: rgba(var(--accent-rgb), 0.45);
-}
-.code-run-btn.loading {
-  opacity: 0.55;
-  cursor: wait;
-}
-.code-playground-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #7fb0c9;
-  text-decoration: none;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 14px;
-  border-radius: 6px;
-  border: 1px solid rgba(128, 176, 208, 0.18);
-  transition: all 0.2s;
-}
-.code-playground-link:hover {
-  background: rgba(128, 176, 208, 0.08);
-  border-color: rgba(128, 176, 208, 0.35);
-}
-.code-output-panel {
-  background: #0d0e11;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 10px 14px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  line-height: 1.55;
-  color: #a8e6a0;
-  max-height: 200px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.code-output-panel.error {
-  color: #f0a0a0;
-}
 
 /* ============================================================================
    MULTI-THEME TOKEN SYSTEM — Three Core Themes
@@ -657,15 +590,6 @@ html.theme-transitioning *:after {
 :root[data-theme="dark"] .pp {
   color: #d2a8ff !important;
 }
-:root[data-theme="dark"] .code-run-wrap {
-  background: var(--code-bar) !important;
-  border-top-color: var(--line) !important;
-}
-:root[data-theme="dark"] .code-output-panel {
-  background: var(--code-bg) !important;
-  border-top-color: var(--line) !important;
-  color: #7ee787 !important;
-}
 
 /* Figures & SVG Diagrams */
 :root[data-theme="dark"] .fig-frame,
@@ -973,7 +897,6 @@ pre::-webkit-scrollbar-thumb:hover,
   .reading-progress-bar,
   .toc-toggle,
   .copy-code-button,
-  .code-run-wrap,
   .search-overlay,
   .masterclass-dock-bar,
   .selection-bubble,
@@ -2601,15 +2524,6 @@ pre code,
 :root[data-theme="light"] .pp {
   color: #8250df !important;
 }
-:root[data-theme="light"] .code-run-wrap {
-  background: #eef1f4 !important;
-  border-top-color: #d0d7de !important;
-}
-:root[data-theme="light"] .code-output-panel {
-  background: #f6f8fa !important;
-  border-top-color: #d0d7de !important;
-  color: #116329 !important;
-}
 
 /* Save Buttons on Codebars & Diagrams */
 .codebar-action-btn {
@@ -2875,16 +2789,6 @@ a:hover {
 }
 
 /* Code Playground & Runner Hovers */
-.code-run-btn:hover {
-  background: var(--accent) !important;
-  color: #ffffff !important;
-  border-color: var(--accent) !important;
-}
-.code-playground-link:hover {
-  background: rgba(var(--accent-rgb), 0.12) !important;
-  color: var(--accent) !important;
-  border-color: var(--accent) !important;
-}
 .code-tabs button:hover {
   color: var(--accent) !important;
   background: var(--surface-card-hover) !important;

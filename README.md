@@ -102,9 +102,8 @@ records for DTOs, `ResponseEntity` wherever a status or header matters.
 
 The examples teach a shape rather than forming a runnable project — they lean on
 illustrative types like `NoteRepository` and `PaymentService` that aren't
-defined here. Self-contained snippets get a **Run** button; Spring examples
-don't, because the sandbox behind that button compiles a single file with no
-Spring on the classpath.
+defined here. Copy them into a Spring Boot project to run them; the standalone
+examples, like the router in chapter 2, compile and run on their own.
 
 ---
 

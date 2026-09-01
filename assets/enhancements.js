@@ -46,6 +46,28 @@
     });
   }
 
+  /* --- Code card tabs ---
+     Switches the visible panel on a multi-language code card. Six
+     chapters used to carry their own copy of this inline; it lives
+     here so every chapter behaves the same and new ones need nothing. */
+  function initCodeTabs() {
+    document.querySelectorAll('[data-cb]').forEach(function (block) {
+      var btns = block.querySelectorAll('.code-tabs button');
+      var panels = block.querySelectorAll('.code-panel');
+      if (!btns.length) return;   // single-language card, nothing to switch
+
+      btns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var lang = btn.dataset.lang;
+          btns.forEach(function (b) { b.classList.toggle('on', b === btn); });
+          panels.forEach(function (p) {
+            p.classList.toggle('on', p.dataset.panel === lang);
+          });
+        });
+      });
+    });
+  }
+
   // ==========================================================================
   //  HOMEPAGE ENHANCEMENTS
   // ==========================================================================
@@ -2941,6 +2963,7 @@
   }
 
   function init() {
+    try { initCodeTabs(); } catch (e) { console.warn('[BFP] initCodeTabs failed:', e); }
     try { initCodeAndDiagramBookmarks(); } catch (e) { console.warn('[BFP] initCodeAndDiagramBookmarks failed:', e); }
     if (isChapter) {
       try { initProgressBar(); } catch (e) { console.warn('[BFP] initProgressBar failed:', e); }

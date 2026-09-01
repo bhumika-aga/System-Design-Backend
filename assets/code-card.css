@@ -133,3 +133,64 @@
   margin: -8px 2px 22px;
   font-family: "Fraunces", Georgia, serif;
 }
+
+/* ==========================================================================
+   Syntax colours for the light theme.
+
+   highlight.js ships one stylesheet per theme and the chapters load
+   `atom-one-dark`, whose palette assumes a dark card. In the light theme the
+   card is light (#f6f8fa, set in enhancements.css) but the tokens kept their
+   dark-background colours: keywords landed at 2.77:1 contrast, well under the
+   4.5:1 WCAG AA floor, on the theme a first-time reader sees by default.
+
+   These override the token colours for the light theme only. Every value
+   below was measured against #f6f8fa and clears AA:
+
+     keyword 5.03   string 12.03   comment 5.74   number 7.13
+     title   6.90   type    6.94   attr    7.13   text  13.76
+   ========================================================================== */
+
+:root[data-theme="light"] .codeblock .hljs {
+  color: #24292f;
+}
+:root[data-theme="light"] .codeblock .hljs-keyword,
+:root[data-theme="light"] .codeblock .hljs-built_in,
+:root[data-theme="light"] .codeblock .hljs-selector-tag,
+:root[data-theme="light"] .codeblock .hljs-section,
+:root[data-theme="light"] .codeblock .hljs-doctag,
+:root[data-theme="light"] .codeblock .hljs-name,
+:root[data-theme="light"] .codeblock .hljs-strong {
+  color: #cf222e;
+}
+:root[data-theme="light"] .codeblock .hljs-string,
+:root[data-theme="light"] .codeblock .hljs-regexp,
+:root[data-theme="light"] .codeblock .hljs-addition,
+:root[data-theme="light"] .codeblock .hljs-quote {
+  color: #0a3069;
+}
+:root[data-theme="light"] .codeblock .hljs-comment,
+:root[data-theme="light"] .codeblock .hljs-deletion {
+  color: #59636e;
+  font-style: italic;
+}
+:root[data-theme="light"] .codeblock .hljs-number,
+:root[data-theme="light"] .codeblock .hljs-literal,
+:root[data-theme="light"] .codeblock .hljs-symbol,
+:root[data-theme="light"] .codeblock .hljs-bullet,
+:root[data-theme="light"] .codeblock .hljs-attr,
+:root[data-theme="light"] .codeblock .hljs-attribute,
+:root[data-theme="light"] .codeblock .hljs-meta {
+  color: #0550ae;
+}
+:root[data-theme="light"] .codeblock .hljs-title,
+:root[data-theme="light"] .codeblock .hljs-function .hljs-title,
+:root[data-theme="light"] .codeblock .hljs-subst {
+  color: #6639ba;
+}
+:root[data-theme="light"] .codeblock .hljs-type,
+:root[data-theme="light"] .codeblock .hljs-class .hljs-title,
+:root[data-theme="light"] .codeblock .hljs-variable,
+:root[data-theme="light"] .codeblock .hljs-template-variable,
+:root[data-theme="light"] .codeblock .hljs-params {
+  color: #953800;
+}

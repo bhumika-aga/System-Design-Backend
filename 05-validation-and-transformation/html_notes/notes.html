@@ -1,0 +1,3866 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Validations & Transformations / Chapter 05 / System Design - Backend
+    </title>
+    <meta
+      name="description"
+      content="Chapter 05 of System Design - Backend: Validations & Transformations. First-principles notes, diagrams and runnable Java and Python examples."
+    />
+    <meta name="theme-color" content="#f3ede2" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='21'%20font-family='Georgia,serif'%20font-size='13'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+      :root {
+        --bg: #f3ede2;
+        --paper: #f3ede2;
+        --paper-2: #ece3d4;
+        --ink: #211e1a;
+        --ink-soft: #5b5347;
+        --ink-faint: #8d8475;
+        --red: #b8402e;
+        --red-deep: #8f2f20;
+        --rule: #d8cfbe;
+        --rule-soft: #d8cfbe;
+        --code-bg: #e6dcca;
+        --code-ink: #e9e2d3;
+        --shadow:
+          0 1px 0 rgba(0, 0, 0, 0.04), 0 18px 40px -28px rgba(40, 30, 20, 0.5);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Spline Sans", system-ui, sans-serif;
+        font-size: 17px;
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+        background-image:
+          radial-gradient(
+            circle at 12% 8%,
+            rgba(184, 64, 46, 0.04),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 88% 40%,
+            rgba(120, 90, 40, 0.045),
+            transparent 45%
+          );
+      }
+      ::selection {
+        background: var(--red);
+        color: #fff;
+      }
+      #progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        width: 0;
+        background: var(--red);
+        z-index: 200;
+        transition: width 0.1s linear;
+      }
+      .kicker {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12px;
+        letter-spacing: 0.36em;
+        text-transform: uppercase;
+        color: var(--red);
+        font-weight: 700;
+      }
+      h1.title {
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 900;
+        font-size: clamp(46px, 6.6vw, 92px);
+        line-height: 0.96;
+        letter-spacing: -0.025em;
+        margin: 18px 0 0;
+      }
+      h1.title em {
+        font-style: italic;
+        color: var(--red);
+        font-weight: 900;
+      }
+      .lede {
+        font-size: 19px;
+        line-height: 1.6;
+        color: var(--ink-soft);
+        max-width: 760px;
+        margin: 30px 0 0;
+      }
+      .lede em {
+        font-style: italic;
+        color: var(--ink);
+      }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 34px 0 0;
+      }
+      .pill {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12.5px;
+        color: var(--ink-soft);
+        border: 1px solid var(--rule);
+        border-radius: 30px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.22);
+      }
+      .hero-rule {
+        height: 3px;
+        width: 118px;
+        background: var(--red);
+        margin: 42px 0 0;
+      }
+      .part-label {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11.5px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--red);
+        font-weight: 700;
+        margin: 96px 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .part-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--rule);
+      }
+      .sec-head {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin: 14px 0 8px;
+        scroll-margin-top: 30px;
+      }
+      .sec-num {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 700;
+        font-size: 16px;
+        color: #fff;
+        background: var(--red);
+        width: 42px;
+        height: 34px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        box-shadow: 0 4px 10px -4px rgba(184, 64, 46, 0.6);
+      }
+      .sec-head h2 {
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 700;
+        font-size: clamp(30px, 3.6vw, 44px);
+        letter-spacing: -0.02em;
+        margin: 0;
+        line-height: 1.04;
+      }
+      .sec-divider {
+        height: 1px;
+        background: var(--rule);
+        margin: 18px 0 30px;
+      }
+      h3 {
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 600;
+        font-size: 25px;
+        letter-spacing: -0.01em;
+        margin: 42px 0 10px;
+      }
+      h4 {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--red-deep);
+        margin: 30px 0 8px;
+      }
+      p {
+        margin: 14px 0;
+      }
+      em {
+        font-style: italic;
+      }
+      code {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 0.82em;
+        background: var(--code-bg);
+        color: var(--code-ink);
+        padding: 2px 7px;
+        border-radius: 5px;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+      }
+      .note {
+        border-left: 3px solid var(--red);
+        background: rgba(184, 64, 46, 0.05);
+        padding: 16px 22px;
+        border-radius: 0 8px 8px 0;
+        margin: 24px 0;
+        font-size: 16.5px;
+      }
+      .note .tag {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--red-deep);
+        font-weight: 700;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .note.dark {
+        border-left-color: var(--ink);
+        background: rgba(33, 30, 26, 0.045);
+      }
+      .note.dark .tag {
+        color: var(--ink);
+      }
+      .defs {
+        margin: 22px 0;
+        border-top: 1px solid var(--rule);
+      }
+      .defs .row {
+        display: flex;
+        gap: 24px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--rule-soft);
+        align-items: baseline;
+      }
+      .defs .term {
+        flex: 0 0 200px;
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 600;
+        font-size: 19px;
+      }
+      .defs .term small {
+        display: block;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--red);
+        font-weight: 700;
+        margin-bottom: 3px;
+      }
+      .defs .desc {
+        flex: 1;
+        color: var(--ink-soft);
+        font-size: 16.5px;
+      }
+
+      /* ---- code: BOTH languages always shown, side by side ---- */
+      .codebar .codecard pre {
+        margin: 0;
+        padding: 18px 18px;
+        overflow-x: auto;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12.6px;
+        line-height: 1.68;
+        color: #e9e2d3;
+        flex: 1;
+      }
+      .codecard pre::-webkit-scrollbar {
+        height: 8px;
+      }
+      .codecard pre::-webkit-scrollbar-thumb {
+        background: #4a443b;
+        border-radius: 10px;
+      }
+      .num2 {
+        color: #d8b66a;
+      }
+      .pp {
+        color: #d8b66a;
+      }
+      .codenote {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin: -12px 0 8px;
+      }
+
+      figure {
+        margin: 34px 0;
+      }
+      .fig-frame {
+        border: 1px solid var(--rule);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.34);
+        padding: 26px 22px 18px;
+        box-shadow: var(--shadow);
+      }
+      .fig-frame svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      figcaption {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 11.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-top: 14px;
+        text-align: center;
+      }
+      figcaption b {
+        color: var(--red);
+        font-weight: 700;
+      }
+      .demo {
+        border: 1px solid var(--rule);
+        border-radius: 11px;
+        overflow: hidden;
+        margin: 24px 0;
+        background: rgba(255, 255, 255, 0.3);
+      }
+      .demo .dhead {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        background: var(--paper-2);
+        padding: 11px 18px;
+        border-bottom: 1px solid var(--rule);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .method {
+        font-weight: 700;
+        color: #fff;
+        background: var(--red);
+        border-radius: 5px;
+        padding: 2px 9px;
+        font-size: 11px;
+      }
+      .demo .dbody {
+        padding: 4px 18px 14px;
+      }
+      .req,
+      .res {
+        margin: 13px 0;
+      }
+      .req .lbl,
+      .res .lbl {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        font-weight: 700;
+      }
+      .req pre,
+      .res pre {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12.8px;
+        line-height: 1.6;
+        background: #232019;
+        border: 1px solid #35302a;
+        border-radius: 7px;
+        padding: 12px 14px;
+        overflow-x: auto;
+        margin: 6px 0 0;
+        color: #e9e2d3;
+      }
+      .status {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 2px 9px;
+        border-radius: 5px;
+      }
+      .s400 {
+        background: #f4ded6;
+        color: #8f2f20;
+      }
+      .s200 {
+        background: #e0e9dd;
+        color: #3f6f4e;
+      }
+      .s500 {
+        background: #35302a;
+        color: #e9e2d3;
+      }
+      ol.steps {
+        counter-reset: s;
+        list-style: none;
+        padding: 0;
+        margin: 22px 0;
+      }
+      ol.steps li {
+        position: relative;
+        padding: 14px 0 14px 56px;
+        border-bottom: 1px solid var(--rule-soft);
+      }
+      ol.steps li::before {
+        counter-increment: s;
+        content: counter(s);
+        position: absolute;
+        left: 0;
+        top: 13px;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: var(--paper-2);
+        border: 1px solid var(--rule);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-weight: 700;
+        color: var(--red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+      ol.steps li b {
+        font-family: "Fraunces", Georgia, serif;
+        font-weight: 600;
+        font-size: 18px;
+      }
+      .has-js .reveal {
+        opacity: 0;
+        transform: translateY(16px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      /* Without JS the observer never runs, so the gate above never
+       applies and every section stays visible. */
+      @media (prefers-reduced-motion: reduce) {
+        .has-js .reveal {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+      .hero-stagger > * {
+        opacity: 0;
+        transform: translateY(14px);
+        animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      }
+      .hero-stagger > *:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .hero-stagger > *:nth-child(2) {
+        animation-delay: 0.14s;
+      }
+      .hero-stagger > *:nth-child(3) {
+        animation-delay: 0.24s;
+      }
+      .hero-stagger > *:nth-child(4) {
+        animation-delay: 0.34s;
+      }
+      .hero-stagger > *:nth-child(5) {
+        animation-delay: 0.44s;
+      }
+      @keyframes rise {
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      footer.end {
+        margin-top: 120px;
+        border-top: 1px solid var(--rule);
+        padding-top: 28px;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        color: var(--ink-faint);
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      @media (max-width: 1100px) {
+      }
+    </style>
+    <style>
+      .chapter-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 9998;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px clamp(16px, 4vw, 48px);
+        background: rgba(243, 237, 226, 0.88);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border-top: 1.5px solid #c7bca6;
+        box-shadow: 0 -8px 32px -16px rgba(40, 30, 20, 0.18);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+      }
+      .nav-chapter-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: #5b5347;
+        padding: 10px 18px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        max-width: 38%;
+      }
+      .nav-chapter-link:hover {
+        background: rgba(184, 64, 46, 0.08);
+        color: #b8402e;
+        transform: translateY(-1px);
+      }
+      .nav-chapter-link.nav-next {
+        text-align: right;
+        flex-direction: row;
+      }
+      .nav-arrow {
+        font-size: 22px;
+        color: #b8402e;
+        font-weight: 700;
+        flex: none;
+      }
+      .nav-label {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 13.5px;
+        line-height: 1.3;
+      }
+      .nav-small {
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #8d8475;
+        font-weight: 600;
+      }
+      .nav-indicator {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #b8402e;
+        font-weight: 700;
+        text-decoration: none;
+        padding: 8px 16px;
+        border: 1.5px solid #c7bca6;
+        border-radius: 40px;
+        background: rgba(255, 255, 255, 0.5);
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .nav-indicator:hover {
+        background: #b8402e;
+        color: #fff;
+        border-color: #b8402e;
+      }
+      .nav-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        background: #b8402e;
+        border-radius: 50%;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+      .nav-sep {
+        color: #c7bca6;
+        margin: 0 2px;
+      }
+      .nav-disabled {
+        visibility: hidden;
+        pointer-events: none;
+      }
+      @media (max-width: 700px) {
+        .nav-label {
+          font-size: 11.5px;
+        }
+        .nav-chapter-link {
+          padding: 8px 10px;
+          max-width: 38%;
+        }
+        .chapter-nav {
+          padding: 10px 12px;
+        }
+        .nav-small {
+          font-size: 9px;
+          letter-spacing: 0.16em;
+        }
+      }
+      @media (max-width: 520px) {
+        .nav-label {
+          display: none;
+        }
+        .nav-chapter-link {
+          max-width: none;
+          padding: 8px 12px;
+        }
+        .nav-arrow {
+          font-size: 20px;
+        }
+        .nav-indicator {
+          font-size: 11px;
+          padding: 7px 13px;
+          letter-spacing: 0.12em;
+        }
+      }
+      body {
+        padding-bottom: 80px;
+      }
+    </style>
+    <link rel="stylesheet" href="../../assets/copy-button.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="../../assets/code-card.css" />
+    <link rel="stylesheet" href="../../assets/enhancements.css" />
+    <link rel="stylesheet" href="../../assets/shell.css" />
+    <link rel="stylesheet" href="../../assets/theme.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      document.documentElement.classList.add("has-js");
+    </script>
+    <script src="../../assets/theme.js"></script>
+  </head>
+  <body>
+    <button
+      class="bfp-toc-toggle"
+      id="bfpTocToggle"
+      aria-controls="bfpToc"
+      aria-expanded="false"
+    >
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <line x1="2" y1="4" x2="14" y2="4" />
+        <line x1="2" y1="8" x2="14" y2="8" />
+        <line x1="2" y1="12" x2="14" y2="12" /></svg
+      >Contents
+    </button>
+    <div class="bfp-toc-scrim" id="bfpTocScrim"></div>
+    <div class="bfp-shell">
+      <aside class="bfp-toc" id="bfpToc">
+        <div class="bfp-brand">
+          <span class="bfp-brand-name">Validation</span
+          ><span class="bfp-brand-slash">/</span
+          ><span class="bfp-brand-lens">the backend lens</span>
+        </div>
+        <div class="bfp-brand-sub">Chapter 05 / Field Manual</div>
+        <div class="bfp-toc-rule"></div>
+        <nav class="bfp-toc-nav">
+          <div class="bfp-toc-part">Part I / Mental Model</div>
+          <a class="bfp-toc-link" href="#s1"
+            ><span class="bfp-toc-num">01</span
+            ><span class="bfp-toc-text">What &amp; Why</span></a
+          >
+          <a class="bfp-toc-link" href="#s2"
+            ><span class="bfp-toc-num">02</span
+            ><span class="bfp-toc-text">The Three Layers</span></a
+          >
+          <a class="bfp-toc-link" href="#s3"
+            ><span class="bfp-toc-num">03</span
+            ><span class="bfp-toc-text">The Request Lifecycle</span></a
+          >
+          <a class="bfp-toc-link" href="#s4"
+            ><span class="bfp-toc-num">04</span
+            ><span class="bfp-toc-text">The Execution Point</span></a
+          >
+          <a class="bfp-toc-link" href="#s5"
+            ><span class="bfp-toc-num">05</span
+            ><span class="bfp-toc-text">Why It Is Critical: 500 vs 400</span></a
+          >
+          <a class="bfp-toc-link" href="#s6"
+            ><span class="bfp-toc-num">06</span
+            ><span class="bfp-toc-text">Inside the Pipeline</span></a
+          >
+          <div class="bfp-toc-part">Part II / Types of Validation</div>
+          <a class="bfp-toc-link" href="#s7"
+            ><span class="bfp-toc-num">07</span
+            ><span class="bfp-toc-text">Type Validation</span></a
+          >
+          <a class="bfp-toc-link" href="#s8"
+            ><span class="bfp-toc-num">08</span
+            ><span class="bfp-toc-text">Syntactic Validation</span></a
+          >
+          <a class="bfp-toc-link" href="#s9"
+            ><span class="bfp-toc-num">09</span
+            ><span class="bfp-toc-text">Semantic Validation</span></a
+          >
+          <a class="bfp-toc-link" href="#s10"
+            ><span class="bfp-toc-num">10</span
+            ><span class="bfp-toc-text">Complex / Dependent</span></a
+          >
+          <div class="bfp-toc-part">Part III / Transformation</div>
+          <a class="bfp-toc-link" href="#s11"
+            ><span class="bfp-toc-num">11</span
+            ><span class="bfp-toc-text">Type Casting</span></a
+          >
+          <a class="bfp-toc-link" href="#s12"
+            ><span class="bfp-toc-num">12</span
+            ><span class="bfp-toc-text">Normalization</span></a
+          >
+          <a class="bfp-toc-link" href="#s13"
+            ><span class="bfp-toc-num">13</span
+            ><span class="bfp-toc-text">One Combined Pipeline</span></a
+          >
+          <div class="bfp-toc-part">Part IV / The Golden Rule</div>
+          <a class="bfp-toc-link" href="#s14"
+            ><span class="bfp-toc-num">14</span
+            ><span class="bfp-toc-text">Frontend vs Backend</span></a
+          >
+          <a class="bfp-toc-link" href="#s15"
+            ><span class="bfp-toc-num">15</span
+            ><span class="bfp-toc-text">Full Annotated Controller</span></a
+          >
+        </nav>
+      </aside>
+      <main class="bfp-content">
+        <div class="hero-stagger">
+          <div class="kicker">A detailed backend reference</div>
+          <h1 class="title">Validations &amp; <em>Transformations.</em></h1>
+          <p class="lede">
+            A first-principles walkthrough of the rules and guidelines you keep
+            in mind while designing APIs, the gate every piece of client data
+            passes through <em>before</em> any business logic runs. Why it
+            exists, where it lives, how it works underneath, with complete
+            implementations in Java and Python.
+          </p>
+          <div class="pills">
+            <span class="pill">Data Integrity</span
+            ><span class="pill">Security</span
+            ><span class="pill">Controller Entry Point</span
+            ><span class="pill">Java + Python / full code</span
+            ><span class="pill">15 sections</span>
+          </div>
+          <div class="hero-rule"></div>
+        </div>
+
+        <!-- PART I -->
+        <div class="part-label reveal">Part I / The Mental Model</div>
+
+        <div class="sec-head reveal" id="s1">
+          <div class="sec-num">01</div>
+          <h2>What They Are &amp; Why They Exist</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          Validations and transformations are not a single feature you install.
+          They are
+          <strong
+            >a set of rules and guidelines you keep in mind while designing your
+            APIs</strong
+          >. Almost everything about them traces back to two goals, and those
+          two goals are the lens through which every later decision is made:
+        </p>
+        <div class="defs reveal">
+          <div class="row">
+            <div class="term"><small>Goal 01</small>Data Integrity</div>
+            <div class="desc">
+              Whatever data finally reaches your business logic and your
+              database is in the <em>exact</em> shape your application expects,
+              correct fields, correct types, correct ranges, correct meaning.
+            </div>
+          </div>
+          <div class="row">
+            <div class="term"><small>Goal 02</small>Security</div>
+            <div class="desc">
+              Untrusted input from the outside world is never allowed to drive
+              your system into an unexpected, unhandled state. The server stays
+              defensive about everything that crosses its boundary.
+            </div>
+          </div>
+        </div>
+        <h4 class="reveal">What counts as "incoming client data"</h4>
+        <p class="reveal">
+          The validation boundary covers <strong>every</strong> kind of data a
+          client can push at the server, not just the request body. All of the
+          following must be treated as untrusted until proven otherwise:
+        </p>
+        <ul class="reveal">
+          <li>
+            <strong>JSON payloads</strong>: the body of a <code>POST</code> /
+            <code>PUT</code> / <code>PATCH</code> request.
+          </li>
+          <li>
+            <strong>Query parameters</strong>: e.g.
+            <code>?page=2&amp;limit=20</code>.
+          </li>
+          <li>
+            <strong>Path parameters</strong>: e.g. the <code>5</code> in
+            <code>/users/5</code>.
+          </li>
+          <li>
+            <strong>Headers</strong>: anything the client sets on the request.
+          </li>
+        </ul>
+        <div class="note reveal">
+          <span class="tag">The one-sentence definition</span> Validation
+          answers
+          <em>"is this data in the exact format my API expects?"</em>
+          Transformation answers
+          <em
+            >"how do I reshape this data into the format my service layer
+            wants?"</em
+          >
+          They run together, at the front door, before anything important
+          happens.
+        </div>
+
+        <div class="sec-head reveal" id="s2">
+          <div class="sec-num">02</div>
+          <h2>Where It Lives: The Three Layers</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          To pinpoint <em>where</em> validation happens you first need the
+          standard mental model of a backend: three stacked layers, each with
+          one job. A request travels down the stack and the response travels
+          back up.
+        </p>
+        <div class="defs reveal">
+          <div class="row">
+            <div class="term"><small>Bottom</small>Repository Layer</div>
+            <div class="desc">
+              Deals only with the database, connections, queries, inserts,
+              updates, deletes. It does not care <em>why</em> a row is being
+              written, only that it is. Works against a relational DB
+              (Postgres), Redis, or any other persistent store.
+            </div>
+          </div>
+          <div class="row">
+            <div class="term"><small>Middle</small>Service Layer</div>
+            <div class="desc">
+              The <em>business logic</em>. A single service method may call one
+              or more repository methods, send push notifications, email users,
+              store data, fire a webhook, everything an API is expected to
+              actually <em>do</em>.
+            </div>
+          </div>
+          <div class="row">
+            <div class="term"><small>Top</small>Controller Layer</div>
+            <div class="desc">
+              The HTTP-facing entry point. It owns everything <em>HTTP</em>:
+              which status code to return, the response format, and, crucially,
+              the validations. It receives client data, calls the matching
+              service method, and returns whatever that method gives back.
+            </div>
+          </div>
+        </div>
+        <p class="reveal">
+          The reason controller and service are
+          <strong>deliberately separated</strong> is to keep HTTP concerns
+          (error codes, success codes, response shape, validation) in one place,
+          and pure business logic in another. The controller calls the service;
+          the service may or may not call the repository, depending on what the
+          request needs.
+        </p>
+
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 760 430"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <defs>
+                <marker
+                  id="ar"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b8402e" />
+                </marker>
+              </defs>
+              <rect
+                x="40"
+                y="30"
+                width="170"
+                height="56"
+                rx="10"
+                fill="#fff"
+                stroke="#d8cfbe"
+              />
+              <text
+                x="125"
+                y="56"
+                text-anchor="middle"
+                font-size="14"
+                font-weight="700"
+                fill="#211e1a"
+              >
+                CLIENT
+              </text>
+              <text
+                x="125"
+                y="74"
+                text-anchor="middle"
+                font-size="10"
+                fill="#8d8475"
+              >
+                JSON / query / path / headers
+              </text>
+              <rect
+                x="270"
+                y="20"
+                width="450"
+                height="92"
+                rx="12"
+                fill="#f7d9d1"
+                stroke="#b8402e"
+                stroke-width="1.5"
+              />
+              <text
+                x="495"
+                y="46"
+                text-anchor="middle"
+                font-size="15"
+                font-weight="700"
+                fill="#8f2f20"
+              >
+                CONTROLLER LAYER
+              </text>
+              <text
+                x="495"
+                y="66"
+                text-anchor="middle"
+                font-size="10.5"
+                fill="#7a4135"
+              >
+                HTTP concerns / status codes / response shape
+              </text>
+              <text
+                x="495"
+                y="84"
+                text-anchor="middle"
+                font-size="10.5"
+                font-weight="700"
+                fill="#8f2f20"
+              >
+                &gt; VALIDATION &amp; TRANSFORMATION live here &lt;
+              </text>
+              <text
+                x="495"
+                y="100"
+                text-anchor="middle"
+                font-size="9.5"
+                fill="#7a4135"
+              >
+                the only layer that touches raw client data
+              </text>
+              <rect
+                x="270"
+                y="160"
+                width="450"
+                height="78"
+                rx="12"
+                fill="#fff"
+                stroke="#d8cfbe"
+              />
+              <text
+                x="495"
+                y="188"
+                text-anchor="middle"
+                font-size="15"
+                font-weight="700"
+                fill="#211e1a"
+              >
+                SERVICE LAYER
+              </text>
+              <text
+                x="495"
+                y="208"
+                text-anchor="middle"
+                font-size="10.5"
+                fill="#8d8475"
+              >
+                business logic / email / notifications
+              </text>
+              <text
+                x="495"
+                y="224"
+                text-anchor="middle"
+                font-size="10.5"
+                fill="#8d8475"
+              >
+                webhooks / orchestration
+              </text>
+              <rect
+                x="270"
+                y="286"
+                width="450"
+                height="74"
+                rx="12"
+                fill="#fff"
+                stroke="#d8cfbe"
+              />
+              <text
+                x="495"
+                y="314"
+                text-anchor="middle"
+                font-size="15"
+                font-weight="700"
+                fill="#211e1a"
+              >
+                REPOSITORY LAYER
+              </text>
+              <text
+                x="495"
+                y="334"
+                text-anchor="middle"
+                font-size="10.5"
+                fill="#8d8475"
+              >
+                DB connections / queries / insert / update / delete
+              </text>
+              <ellipse
+                cx="495"
+                cy="392"
+                rx="60"
+                ry="14"
+                fill="#f3ede2"
+                stroke="#d8cfbe"
+              />
+              <text
+                x="495"
+                y="397"
+                text-anchor="middle"
+                font-size="11"
+                font-weight="700"
+                fill="#5b5347"
+              >
+                Postgres / Redis
+              </text>
+              <line
+                x1="210"
+                y1="62"
+                x2="264"
+                y2="64"
+                stroke="#b8402e"
+                stroke-width="2"
+                marker-end="url(#ar)"
+              />
+              <line
+                x1="495"
+                y1="112"
+                x2="495"
+                y2="154"
+                stroke="#b8402e"
+                stroke-width="2"
+                marker-end="url(#ar)"
+              />
+              <line
+                x1="495"
+                y1="238"
+                x2="495"
+                y2="280"
+                stroke="#b8402e"
+                stroke-width="2"
+                marker-end="url(#ar)"
+              />
+              <line
+                x1="495"
+                y1="360"
+                x2="495"
+                y2="376"
+                stroke="#b8402e"
+                stroke-width="2"
+                marker-end="url(#ar)"
+              />
+              <text x="520" y="138" font-size="9.5" fill="#8d8475">
+                calls service method
+              </text>
+              <text x="520" y="264" font-size="9.5" fill="#8d8475">
+                may call repository
+              </text>
+            </svg>
+          </div>
+          <figcaption>
+            The standard stack, validation is pinned to the
+            <b>top of the controller</b>
+          </figcaption>
+        </figure>
+
+        <div class="sec-head reveal" id="s3">
+          <div class="sec-num">03</div>
+          <h2>The Request Lifecycle</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          A request does not magically appear inside your controller method. It
+          arrives, gets <strong>route-matched</strong>, and only then is the
+          controller method assigned to that route invoked. That ordering is the
+          key to placing validation correctly.
+        </p>
+        <ol class="steps reveal">
+          <li>
+            <b>Data arrives.</b> A client opens an HTTP connection and sends a
+            request, typically a JSON payload, plus query and path parameters
+            and headers.
+          </li>
+          <li>
+            <b>Route matching runs.</b> The router compares the incoming path
+            against its patterns and selects the controller method registered
+            for the matched route.
+          </li>
+          <li>
+            <b>Validation &amp; transformation pipeline fires.</b> Before
+            <em>any</em> significant logic runs, the matched controller passes
+            the raw data through the pipeline.
+          </li>
+          <li>
+            <b>Business logic runs.</b> Only if the data passed does the
+            controller call the service method.
+          </li>
+          <li>
+            <b>Service -&gt; repository.</b> The service executes logic,
+            optionally calling repository methods that hit the database.
+          </li>
+          <li>
+            <b>Response travels back up.</b> Whatever the service returns is
+            handed to the controller, which returns it to the caller over the
+            HTTP connection.
+          </li>
+        </ol>
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 900 220"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <defs>
+                <marker
+                  id="ar2"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b8402e" />
+                </marker>
+              </defs>
+              <g font-size="11" font-weight="700">
+                <rect
+                  x="14"
+                  y="80"
+                  width="110"
+                  height="58"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="69" y="106" text-anchor="middle" fill="#211e1a">
+                  CLIENT
+                </text>
+                <text
+                  x="69"
+                  y="122"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  sends request
+                </text>
+                <rect
+                  x="158"
+                  y="80"
+                  width="120"
+                  height="58"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="218" y="102" text-anchor="middle" fill="#211e1a">
+                  ROUTE
+                </text>
+                <text x="218" y="118" text-anchor="middle" fill="#211e1a">
+                  MATCHING
+                </text>
+                <rect
+                  x="312"
+                  y="64"
+                  width="186"
+                  height="92"
+                  rx="11"
+                  fill="#f7d9d1"
+                  stroke="#b8402e"
+                  stroke-width="1.6"
+                />
+                <text x="405" y="92" text-anchor="middle" fill="#8f2f20">
+                  VALIDATION &amp;
+                </text>
+                <text x="405" y="108" text-anchor="middle" fill="#8f2f20">
+                  TRANSFORMATION
+                </text>
+                <text
+                  x="405"
+                  y="128"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  the gate, runs first
+                </text>
+                <rect
+                  x="532"
+                  y="80"
+                  width="120"
+                  height="58"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="592" y="102" text-anchor="middle" fill="#211e1a">
+                  CONTROLLER
+                </text>
+                <text
+                  x="592"
+                  y="118"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  business path
+                </text>
+                <rect
+                  x="686"
+                  y="80"
+                  width="100"
+                  height="58"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="736" y="106" text-anchor="middle" fill="#211e1a">
+                  SERVICE
+                </text>
+                <text
+                  x="736"
+                  y="122"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  -&gt; repository
+                </text>
+                <line
+                  x1="124"
+                  y1="109"
+                  x2="154"
+                  y2="109"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar2)"
+                />
+                <line
+                  x1="278"
+                  y1="109"
+                  x2="308"
+                  y2="109"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar2)"
+                />
+                <line
+                  x1="498"
+                  y1="109"
+                  x2="528"
+                  y2="109"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar2)"
+                />
+                <line
+                  x1="652"
+                  y1="109"
+                  x2="682"
+                  y2="109"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar2)"
+                />
+                <path
+                  d="M405 156 q0 30 -150 30 L150 186"
+                  fill="none"
+                  stroke="#8f2f20"
+                  stroke-width="1.6"
+                  stroke-dasharray="5 4"
+                  marker-end="url(#ar2)"
+                />
+                <text
+                  x="250"
+                  y="205"
+                  font-size="9.5"
+                  font-weight="700"
+                  fill="#8f2f20"
+                >
+                  on failure -&gt; 400 Bad Request, never reaches service
+                </text>
+              </g>
+            </svg>
+          </div>
+          <figcaption>
+            The gate sits between <b>route matching</b> and any
+            <b>business logic</b>
+          </figcaption>
+        </figure>
+
+        <div class="sec-head reveal" id="s4">
+          <div class="sec-num">04</div>
+          <h2>The Execution Point</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          Validation and transformation happen at
+          <strong>exactly one point</strong>: inside the controller layer,
+          immediately <em>after</em> the route is matched and
+          <em>before</em> any service method is called or any business logic
+          runs. Concretely it is implemented as a reusable
+          <strong>middleware or utility function</strong> that you hand a
+          <strong>schema</strong>: the description of what the data should look
+          like, and it walks every field of the incoming payload against that
+          schema.
+        </p>
+        <div class="note dark reveal">
+          <span class="tag">Why the front door, specifically</span> Validating
+          at the entry point guarantees the system never carries an
+          <em>unexpected state</em> any deeper than the front door. Bad data is
+          rejected while it is still cheap to reject, before database
+          connections open, before emails queue, before any side effect fires.
+        </div>
+
+        <div class="sec-head reveal" id="s5">
+          <div class="sec-num">05</div>
+          <h2>Why It Is Critical: The 500 vs 400 Story</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          The clearest way to feel the need for validation is to watch what
+          happens <em>without</em> it. Imagine a "create book" API that expects
+          a JSON body with a <code>name</code> field that should be a string. A
+          client instead sends the <strong>number</strong> <code>0</code>:
+        </p>
+        <div class="demo reveal">
+          <div class="dhead"><span class="method">POST</span> /api/books</div>
+          <div class="dbody">
+            <div class="req">
+              <span class="lbl">Request body (malformed)</span>
+              <pre>{ "name": 0 }</pre>
+            </div>
+          </div>
+        </div>
+        <p class="reveal">
+          In your Postgres schema the column was almost certainly declared like
+          this, a string column that cannot be null:
+        </p>
+        <div class="codeblock single" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-sql"></span>
+              <span class="name">schema.sql</span></span
+            >
+          </div>
+          <div class="code-panel on" data-panel="sql">
+            <pre><code class="language-sql">CREATE TABLE books (
+  id    SERIAL PRIMARY KEY,
+  name  TEXT NOT NULL   -- expects text, refuses an integer
+);</code></pre>
+          </div>
+        </div>
+        <p class="reveal">
+          With <strong>no validation</strong>, that <code>0</code> sails through
+          the controller, through the service, down into the repository, and
+          becomes an <code>INSERT</code>. Postgres checks the column type, sees
+          a number where it demanded <code>TEXT</code>, and
+          <strong>rejects the operation</strong>. The database call fails, and
+          the client receives:
+        </p>
+        <div class="demo reveal">
+          <div class="dhead">
+            Response without validation
+            <span class="status s500" style="margin-left: auto"
+              >500 INTERNAL SERVER ERROR</span
+            >
+          </div>
+          <div class="dbody">
+            <div class="res">
+              <span class="lbl">"Something went wrong on the server"</span>
+              <pre>{ "error": "Internal Server Error" }</pre>
+            </div>
+          </div>
+        </div>
+        <p class="reveal">
+          That is a <strong>poor user experience</strong>. A 500 says "something
+          unexpected broke inside us" when in reality the <em>client</em> sent
+          bad input, and gives them nothing to fix. With a validation pipeline
+          at the entry point, the server catches the mistake instantly, the
+          database is never touched, and the client gets an actionable
+          <strong>400 Bad Request</strong>:
+        </p>
+        <div class="demo reveal">
+          <div class="dhead">
+            Response with validation
+            <span class="status s400" style="margin-left: auto"
+              >400 BAD REQUEST</span
+            >
+          </div>
+          <div class="dbody">
+            <div class="res">
+              <span class="lbl">Actionable, returned before any DB call</span>
+              <pre>
+{ "errors": [ "name: expected a string, received a number" ] }</pre
+              >
+            </div>
+          </div>
+        </div>
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 880 270"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <defs>
+                <marker
+                  id="ar3"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#9a8f78" />
+                </marker>
+                <marker
+                  id="ar3r"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b8402e" />
+                </marker>
+              </defs>
+              <text
+                x="20"
+                y="28"
+                font-size="12"
+                font-weight="700"
+                fill="#7a4135"
+              >
+                PATH A / NO VALIDATION
+              </text>
+              <g font-size="10" font-weight="700">
+                <rect
+                  x="20"
+                  y="44"
+                  width="92"
+                  height="44"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="66" y="70" text-anchor="middle" fill="#211e1a">
+                  {name:0}
+                </text>
+                <rect
+                  x="150"
+                  y="44"
+                  width="92"
+                  height="44"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="196" y="70" text-anchor="middle" fill="#211e1a">
+                  controller
+                </text>
+                <rect
+                  x="280"
+                  y="44"
+                  width="92"
+                  height="44"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="326" y="70" text-anchor="middle" fill="#211e1a">
+                  service
+                </text>
+                <rect
+                  x="410"
+                  y="44"
+                  width="92"
+                  height="44"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="456" y="70" text-anchor="middle" fill="#211e1a">
+                  repository
+                </text>
+                <rect
+                  x="540"
+                  y="44"
+                  width="100"
+                  height="44"
+                  rx="8"
+                  fill="#2c1a14"
+                  stroke="#2c1a14"
+                />
+                <text x="590" y="64" text-anchor="middle" fill="#e9e2d3">
+                  DB REJECTS
+                </text>
+                <text
+                  x="590"
+                  y="79"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#d9a99c"
+                >
+                  type mismatch
+                </text>
+                <rect
+                  x="678"
+                  y="44"
+                  width="178"
+                  height="44"
+                  rx="8"
+                  fill="#35302a"
+                  stroke="#35302a"
+                />
+                <text x="767" y="64" text-anchor="middle" fill="#e9e2d3">
+                  500 to client
+                </text>
+                <text
+                  x="767"
+                  y="79"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#d9a99c"
+                >
+                  "something broke" / unhelpful
+                </text>
+                <line
+                  x1="112"
+                  y1="66"
+                  x2="146"
+                  y2="66"
+                  stroke="#9a8f78"
+                  stroke-width="2"
+                  marker-end="url(#ar3)"
+                />
+                <line
+                  x1="242"
+                  y1="66"
+                  x2="276"
+                  y2="66"
+                  stroke="#9a8f78"
+                  stroke-width="2"
+                  marker-end="url(#ar3)"
+                />
+                <line
+                  x1="372"
+                  y1="66"
+                  x2="406"
+                  y2="66"
+                  stroke="#9a8f78"
+                  stroke-width="2"
+                  marker-end="url(#ar3)"
+                />
+                <line
+                  x1="502"
+                  y1="66"
+                  x2="536"
+                  y2="66"
+                  stroke="#9a8f78"
+                  stroke-width="2"
+                  marker-end="url(#ar3)"
+                />
+                <line
+                  x1="640"
+                  y1="66"
+                  x2="674"
+                  y2="66"
+                  stroke="#9a8f78"
+                  stroke-width="2"
+                  marker-end="url(#ar3)"
+                />
+              </g>
+              <line
+                x1="20"
+                y1="120"
+                x2="860"
+                y2="120"
+                stroke="#d8cfbe"
+                stroke-dasharray="3 4"
+              />
+              <text
+                x="20"
+                y="158"
+                font-size="12"
+                font-weight="700"
+                fill="#8f2f20"
+              >
+                PATH B / WITH VALIDATION AT THE GATE
+              </text>
+              <g font-size="10" font-weight="700">
+                <rect
+                  x="20"
+                  y="174"
+                  width="92"
+                  height="44"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="66" y="200" text-anchor="middle" fill="#211e1a">
+                  {name:0}
+                </text>
+                <rect
+                  x="150"
+                  y="166"
+                  width="150"
+                  height="60"
+                  rx="9"
+                  fill="#f7d9d1"
+                  stroke="#b8402e"
+                  stroke-width="1.5"
+                />
+                <text x="225" y="192" text-anchor="middle" fill="#8f2f20">
+                  VALIDATION
+                </text>
+                <text
+                  x="225"
+                  y="208"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  expected string, got number
+                </text>
+                <rect
+                  x="360"
+                  y="174"
+                  width="200"
+                  height="44"
+                  rx="8"
+                  fill="#f4ded6"
+                  stroke="#b8402e"
+                />
+                <text x="460" y="194" text-anchor="middle" fill="#8f2f20">
+                  400 to client (instant)
+                </text>
+                <text
+                  x="460"
+                  y="209"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  exactly what to fix
+                </text>
+                <rect
+                  x="600"
+                  y="174"
+                  width="170"
+                  height="44"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                  stroke-dasharray="4 4"
+                />
+                <text x="685" y="194" text-anchor="middle" fill="#9a8f78">
+                  service / DB
+                </text>
+                <text
+                  x="685"
+                  y="209"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  never touched
+                </text>
+                <line
+                  x1="112"
+                  y1="196"
+                  x2="146"
+                  y2="196"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar3r)"
+                />
+                <line
+                  x1="300"
+                  y1="196"
+                  x2="356"
+                  y2="196"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar3r)"
+                />
+              </g>
+            </svg>
+          </div>
+          <figcaption>
+            Same bad input, two outcomes, <b>500 disaster</b> vs a clean
+            <b>400</b> that never wakes the database
+          </figcaption>
+        </figure>
+
+        <div class="sec-head reveal" id="s6">
+          <div class="sec-num">06</div>
+          <h2>Inside the Pipeline: Step by Step</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          A robust pipeline processes a field in <strong>layers</strong>, and
+          the order matters: each check only runs if the previous one passed.
+          Take a single field, <code>name</code>, required to be a string of
+          length 5-100:
+        </p>
+        <ol class="steps reveal">
+          <li>
+            <b>Existence check.</b> Does <code>name</code> exist in the payload
+            at all? If not -&gt; <code>"name is required"</code>, stop.
+          </li>
+          <li>
+            <b>Type check.</b> It exists, is it a string, or did the client send
+            an array / boolean / number? If wrong type -&gt;
+            <code>"expected a string"</code>, stop.
+          </li>
+          <li>
+            <b>Constraint check.</b> It is a string, does it satisfy the
+            restrictions? Length 5-100. A 2-character string or a whole
+            paragraph both fail with a tailored message.
+          </li>
+        </ol>
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 720 260"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <defs>
+                <marker
+                  id="ar4"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#211e1a" />
+                </marker>
+                <marker
+                  id="ar4r"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b8402e" />
+                </marker>
+              </defs>
+              <g font-size="11" font-weight="700">
+                <rect
+                  x="270"
+                  y="14"
+                  width="180"
+                  height="40"
+                  rx="9"
+                  fill="#f3ede2"
+                  stroke="#d8cfbe"
+                />
+                <text x="360" y="39" text-anchor="middle" fill="#211e1a">
+                  incoming field "name"
+                </text>
+                <rect
+                  x="250"
+                  y="74"
+                  width="220"
+                  height="42"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="360" y="100" text-anchor="middle" fill="#211e1a">
+                  1 / EXISTENCE CHECK
+                </text>
+                <rect
+                  x="250"
+                  y="134"
+                  width="220"
+                  height="42"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="360" y="160" text-anchor="middle" fill="#211e1a">
+                  2 / TYPE CHECK
+                </text>
+                <rect
+                  x="250"
+                  y="194"
+                  width="220"
+                  height="42"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="360" y="220" text-anchor="middle" fill="#211e1a">
+                  3 / CONSTRAINT CHECK
+                </text>
+                <line
+                  x1="360"
+                  y1="54"
+                  x2="360"
+                  y2="70"
+                  stroke="#211e1a"
+                  stroke-width="2"
+                  marker-end="url(#ar4)"
+                />
+                <line
+                  x1="360"
+                  y1="116"
+                  x2="360"
+                  y2="130"
+                  stroke="#211e1a"
+                  stroke-width="2"
+                  marker-end="url(#ar4)"
+                />
+                <line
+                  x1="360"
+                  y1="176"
+                  x2="360"
+                  y2="190"
+                  stroke="#211e1a"
+                  stroke-width="2"
+                  marker-end="url(#ar4)"
+                />
+                <rect
+                  x="540"
+                  y="194"
+                  width="160"
+                  height="42"
+                  rx="9"
+                  fill="#e0e9dd"
+                  stroke="#3f6f4e"
+                />
+                <text
+                  x="620"
+                  y="220"
+                  text-anchor="middle"
+                  fill="#3f6f4e"
+                  font-size="11"
+                >
+                  PASS -&gt; controller
+                </text>
+                <line
+                  x1="470"
+                  y1="215"
+                  x2="536"
+                  y2="215"
+                  stroke="#211e1a"
+                  stroke-width="2"
+                  marker-end="url(#ar4)"
+                />
+                <rect
+                  x="20"
+                  y="74"
+                  width="200"
+                  height="42"
+                  rx="9"
+                  fill="#f4ded6"
+                  stroke="#b8402e"
+                />
+                <text
+                  x="120"
+                  y="95"
+                  text-anchor="middle"
+                  fill="#8f2f20"
+                  font-size="9.5"
+                >
+                  "name is required"
+                </text>
+                <text
+                  x="120"
+                  y="109"
+                  text-anchor="middle"
+                  font-size="8"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  400
+                </text>
+                <rect
+                  x="20"
+                  y="134"
+                  width="200"
+                  height="42"
+                  rx="9"
+                  fill="#f4ded6"
+                  stroke="#b8402e"
+                />
+                <text
+                  x="120"
+                  y="155"
+                  text-anchor="middle"
+                  fill="#8f2f20"
+                  font-size="9.5"
+                >
+                  "expected a string"
+                </text>
+                <text
+                  x="120"
+                  y="169"
+                  text-anchor="middle"
+                  font-size="8"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  400
+                </text>
+                <rect
+                  x="20"
+                  y="194"
+                  width="200"
+                  height="42"
+                  rx="9"
+                  fill="#f4ded6"
+                  stroke="#b8402e"
+                />
+                <text
+                  x="120"
+                  y="211"
+                  text-anchor="middle"
+                  fill="#8f2f20"
+                  font-size="9"
+                >
+                  "length must be 5-100"
+                </text>
+                <text
+                  x="120"
+                  y="225"
+                  text-anchor="middle"
+                  font-size="8"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  400
+                </text>
+                <line
+                  x1="248"
+                  y1="95"
+                  x2="224"
+                  y2="95"
+                  stroke="#b8402e"
+                  stroke-width="1.8"
+                  stroke-dasharray="4 3"
+                  marker-end="url(#ar4r)"
+                />
+                <line
+                  x1="248"
+                  y1="155"
+                  x2="224"
+                  y2="155"
+                  stroke="#b8402e"
+                  stroke-width="1.8"
+                  stroke-dasharray="4 3"
+                  marker-end="url(#ar4r)"
+                />
+                <line
+                  x1="248"
+                  y1="215"
+                  x2="224"
+                  y2="215"
+                  stroke="#b8402e"
+                  stroke-width="1.8"
+                  stroke-dasharray="4 3"
+                  marker-end="url(#ar4r)"
+                />
+              </g>
+            </svg>
+          </div>
+          <figcaption>
+            Each gate only opens if the previous one passed, failure
+            <b>short-circuits</b> to a 400
+          </figcaption>
+        </figure>
+        <p class="reveal">
+          In code, libraries express this as a declarative schema. Java uses
+          <strong>Jakarta Bean Validation</strong> annotations on a DTO, which
+          Spring runs for you when you mark a parameter <code>@Valid</code>;
+          Python uses Pydantic, where the same model both validates and
+          transforms.
+        </p>
+        <div class="codenote reveal">
+          v Java first; switch the tab for the Python equivalent
+        </div>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// The DTO *is* the schema. Each annotation declares one rule:
+//   @NotBlank -&gt; the existence check
+//   the type  -&gt; the type check (String)
+//   @Size     -&gt; the constraint check
+record CreateBook(
+        @NotBlank(message = "is required")
+        @Size(min = 5, max = 100, message = "must be 5 to 100 characters")
+        String name) {}
+
+@RestController
+@RequestMapping("/api/books")
+class BookController {
+
+    // @Valid runs the whole pipeline before the method body starts.
+    // A JSON number for `name` never even reaches validation: Jackson
+    // fails the type check while parsing, and Spring answers 400.
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    Book create(@Valid @RequestBody CreateBook body) {
+        return books.create(body.name());   // only valid data gets here
+    }
+}
+
+// One place turns failures into 400-ready messages, instead of every
+// controller formatting its own.
+@RestControllerAdvice
+class ValidationErrorHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Map&lt;String, List&lt;String&gt;&gt; onInvalid(
+            MethodArgumentNotValidException e) {
+
+        List&lt;String&gt; messages = e.getBindingResult().getFieldErrors()
+                .stream()
+                .map(f -&gt; f.getField() + ": " + f.getDefaultMessage())
+                .toList();
+
+        return Map.of("errors", messages);
+    }
+}</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from fastapi import HTTPException
+from pydantic import BaseModel, Field, ValidationError
+
+
+# CreateBook is the SCHEMA. Each annotation = one rule:
+#   no default      -&gt; existence check (required)
+#   : str           -&gt; type check
+#   min/max_length  -&gt; constraint check
+class CreateBook(BaseModel):
+    name: str = Field(min_length=5, max_length=100)
+
+
+def run_pipeline(raw: dict) -&gt; CreateBook:
+    """Decode + validate in one call.
+    Raises a 400-ready error on failure."""
+    try:
+        # constructing the model runs all three layers
+        # in order: existence -&gt; type -&gt; constraint
+        return CreateBook(**raw)
+    except ValidationError as e:
+        # reshape pydantic errors into clean strings
+        messages = [
+            f"{err['loc'][0]}: {err['msg']}"
+            for err in e.errors()
+        ]
+        raise HTTPException(status_code=400, detail=messages)
+
+
+# run_pipeline({})            -&gt; 400 ["name: Field required"]
+# run_pipeline({"name": 0})   -&gt; 400 ["name: Input should be
+#                                      a valid string"]
+# run_pipeline({"name": "ab"})-&gt; 400 ["name: String should
+#                                      have at least 5 chars"]
+# run_pipeline({"name": "Dune"}) ... still &lt;5 -&gt; 400
+# run_pipeline({"name": "The Hobbit"}) -&gt; OK</code></pre>
+          </div>
+        </div>
+
+        <!-- PART II -->
+        <div class="part-label reveal">
+          Part II / The Four Types of Validation
+        </div>
+        <p class="reveal">
+          These are not a fixed taxonomy you must memorize, there can be more
+          depending on requirements, but in practice four flavors cover almost
+          everything you will meet while designing APIs. The real takeaway is a
+          question you keep asking yourself:
+          <em>how strict and how specific do I want to be with this data?</em>
+        </p>
+
+        <div class="sec-head reveal" id="s7">
+          <div class="sec-num">07</div>
+          <h2>Type Validation</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          The most basic flavor: does the field match the
+          <strong>data type</strong> the API expects? Is it a string, a number,
+          a boolean, an array, or a nested JSON object, and not something else?
+          It can also apply <strong>recursively</strong>: an array field may
+          require that <em>every element</em> is a string, so element
+          <code>0</code> being a number is itself a type error.
+        </p>
+        <div class="demo reveal">
+          <div class="dhead">
+            <span class="method">POST</span> /api/valid/type
+          </div>
+          <div class="dbody">
+            <div class="req">
+              <span class="lbl">Wrong types sent</span>
+              <pre>
+{ "stringField":"x", "numberField":"x", "arrayField":"x", "boolField":"x" }</pre
+              >
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Response <span class="status s400">400</span></span
+              >
+              <pre>
+numberField: expected number, received string
+arrayField:  expected array,  received string
+boolField:   expected boolean, received string</pre
+              >
+            </div>
+            <div class="req">
+              <span class="lbl"
+                >Then an array of numbers where strings are required</span
+              >
+              <pre>
+{ "arrayField": [1, 2] }  -&gt;  arrayField[0]: expected string, received number</pre
+              >
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Fully corrected -&gt;
+                <span class="status s200">200</span></span
+              >
+              <pre>
+{ "stringField":"something", "numberField":10, "arrayField":["one","two"], "boolField":false }</pre
+              >
+            </div>
+          </div>
+        </div>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Boxed types, not primitives. A `boolean` field silently defaults
+// to false, so "absent" and "false" become indistinguishable;
+// `Boolean` stays null when absent and @NotNull can catch it.
+record TypePayload(
+        @NotBlank String stringField,
+        @NotNull Double numberField,
+        @NotEmpty List&lt;@NotBlank String&gt; arrayField,   // and each item
+        @NotNull Boolean boolField) {}
+
+// Reject stray keys rather than ignoring them. application.yml:
+//   spring:
+//     jackson:
+//       deserialization:
+//         fail-on-unknown-properties: true
+
+// Jackson enforces the base types while parsing, before any
+// constraint runs:
+//   {"numberField":"x"}  -&gt; cannot deserialize Double from String
+//   {"arrayField":[1,2]} -&gt; cannot deserialize String from Integer
+//
+// Both arrive as HttpMessageNotReadableException, which you map to a
+// 400 in the same @RestControllerAdvice.</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from pydantic import BaseModel
+from typing import List
+
+
+class TypePayload(BaseModel):
+    stringField: str
+    numberField: float
+    arrayField:  List[str]   # recursive: EVERY element a string
+    boolField:   bool
+
+
+# Strict, explicit type errors:
+#
+# TypePayload(stringField="x", numberField="x",
+#             arrayField="x", boolField="x")
+#   -&gt; numberField: Input should be a valid number
+#   -&gt; arrayField:  Input should be a valid list
+#   -&gt; boolField:   Input should be a valid boolean
+#
+# TypePayload(..., arrayField=[1, 2], ...)
+#   -&gt; arrayField.0: Input should be a valid string
+#   -&gt; arrayField.1: Input should be a valid string
+#
+# TypePayload(stringField="something", numberField=10,
+#             arrayField=["one","two"], boolField=False) -&gt; OK</code></pre>
+          </div>
+        </div>
+
+        <div class="sec-head reveal" id="s8">
+          <div class="sec-num">08</div>
+          <h2>Syntactic Validation</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          Here the type is already correct (a string) but the string must follow
+          a <strong>specific structural pattern</strong>. The validation
+          algorithm checks the <em>shape</em> of the value:
+        </p>
+        <ul class="reveal">
+          <li>
+            <strong>Email</strong>: a local part, then the
+            <code>@</code> character, then a domain made of a name plus a
+            top-level domain (<code>.com</code>, <code>.co.in</code>,
+            <code>.org</code>, ...). There are thousands of valid TLDs; the
+            structure is what gets checked.
+          </li>
+          <li>
+            <strong>Phone number</strong>: a country code followed by the right
+            number of digits for that country (e.g. a country code then a
+            10-digit number).
+          </li>
+          <li>
+            <strong>Date</strong>: must match the expected structure, e.g.
+            <code>YYYY-MM-DD</code> (year, then month, then day).
+          </li>
+        </ul>
+        <div class="demo reveal">
+          <div class="dhead">
+            <span class="method">POST</span> /api/valid/syntactic
+          </div>
+          <div class="dbody">
+            <div class="req">
+              <span class="lbl">Empty body</span>
+              <pre>{ }</pre>
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Response <span class="status s400">400</span>, the errors
+                double as live documentation</span
+              >
+              <pre>email: required   phone: required   date: required</pre>
+            </div>
+            <div class="req">
+              <span class="lbl">Bad values</span>
+              <pre>
+{ "email":"randomstring", "phone":1234567, "date":"2025-11-05" }</pre
+              >
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Response <span class="status s400">400</span></span
+              >
+              <pre>
+email: invalid email format
+phone: expected a string, received a number</pre
+              >
+            </div>
+            <div class="req">
+              <span class="lbl">Corrected</span>
+              <pre>{ "email":"test@test.com", "phone":"1234567", "date":"2025-11-05" }  -&gt;  <span style="color:#3f6f4e">200</span></pre>
+            </div>
+          </div>
+        </div>
+        <div class="note reveal">
+          <span class="tag">A free benefit</span> Even a client that hits the
+          API blind, with an empty payload, gets back the list of required
+          fields and their expected shapes. When the API docs are missing or out
+          of date, the validation error messages themselves are a perfectly good
+          way to discover what the endpoint demands.
+        </div>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Syntax asks "is it shaped like an email, a phone, a date?"
+// Most of that is a built-in annotation; the rest is one regex.
+record Contact(
+        @NotBlank
+        @Email(message = "invalid email format")
+        String email,
+
+        @NotBlank
+        @Pattern(regexp = "^\\+?[0-9]{7,15}$",
+                 message = "invalid phone number format")
+        String phone,                 // optional +, then 7-15 digits
+
+        @NotNull
+        LocalDate dateOfBirth) {}     // the TYPE does the date check
+
+// "randomstring" -&gt; email: invalid email format
+// "2025-13-40"   -&gt; never becomes a LocalDate; rejected while parsing
+//
+// Choosing LocalDate over String is the cheapest validation in the
+// chapter: an impossible date cannot survive being parsed.</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from datetime import date
+from pydantic import BaseModel, EmailStr, Field
+
+
+class Contact(BaseModel):
+    email: EmailStr                       # local @ domain.tld
+    # country code + 7-15 digits
+    phone: str = Field(pattern=r"^\+?[0-9]{7,15}$")
+    date:  date                           # only accepts YYYY-MM-DD
+
+
+# Contact(email="randomstring", phone=1234567,
+#         date="2025-11-05")
+#   -&gt; email: value is not a valid email address
+#   -&gt; phone: Input should be a valid string
+#
+# Contact(email="bad@", ...)
+#   -&gt; email: there must be something after the @-sign
+#
+# Contact(email="test@test.com", phone="1234567",
+#         date="2025-11-05")  -&gt; OK</code></pre>
+          </div>
+        </div>
+
+        <div class="sec-head reveal" id="s9">
+          <div class="sec-num">09</div>
+          <h2>Semantic Validation</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          The type is right and the syntax is right, but does the value
+          <strong>make sense in the real world?</strong> Semantic checks encode
+          domain logic:
+        </p>
+        <ul class="reveal">
+          <li>
+            A <strong>date of birth</strong> cannot be in the future, if today
+            is <code>2025-01-11</code>, a DOB of <code>2025-01-13</code> is
+            nonsense even though it is a perfectly valid date.
+          </li>
+          <li>
+            An <strong>age</strong> of <code>365</code> (or <code>430</code>)
+            does not make sense, at least not yet. A reasonable human age range
+            is roughly <code>1</code> to <code>120</code>.
+          </li>
+        </ul>
+        <div class="demo reveal">
+          <div class="dhead">
+            <span class="method">POST</span> /api/valid/semantic
+          </div>
+          <div class="dbody">
+            <div class="req">
+              <span class="lbl">Future DOB</span>
+              <pre>{ "dateOfBirth":"2026-06-12", "age":43 }</pre>
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Response <span class="status s400">400</span></span
+              >
+              <pre>dateOfBirth: date of birth cannot be in the future</pre>
+            </div>
+            <div class="req">
+              <span class="lbl">Impossible age</span>
+              <pre>{ "dateOfBirth":"1995-06-12", "age":430 }</pre>
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Response <span class="status s400">400</span></span
+              >
+              <pre>age: number must be less than or equal to 120</pre>
+            </div>
+            <div class="req">
+              <span class="lbl">Sensible</span>
+              <pre>{ "dateOfBirth":"1995-06-12", "age":43 }  -&gt;  <span style="color:#3f6f4e">200</span></pre>
+            </div>
+          </div>
+        </div>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Type and syntax cannot express "not in the future". Semantics
+// need real logic checked against the real world -- here, the clock.
+record Profile(
+        @NotNull
+        @Past(message = "date of birth cannot be in the future")
+        LocalDate dateOfBirth,
+
+        @NotNull
+        @Min(value = 1, message = "must be at least 1")
+        @Max(value = 120, message = "must be 120 or less")
+        Integer age) {}
+
+// {"dateOfBirth":"2026-06-12"} -&gt; cannot be in the future
+// {"age":430}                  -&gt; age: must be 120 or less
+//
+// @Past and @Future are the rare semantic rules that ship in the box
+// precisely because "now" is universal. Anything richer -- "this SKU
+// exists", "this slot is still free" -- needs a custom
+// ConstraintValidator, or belongs in the service layer entirely.</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from datetime import date
+from pydantic import BaseModel, Field, field_validator
+
+
+class Profile(BaseModel):
+    dateOfBirth: date
+    age: int = Field(ge=1, le=120)   # 430 -&gt; must be &lt;= 120
+
+    @field_validator("dateOfBirth")
+    @classmethod
+    def not_in_future(cls, v: date) -&gt; date:
+        if v &gt; date.today():
+            raise ValueError(
+                "date of birth cannot be in the future")
+        return v
+
+
+# Profile(dateOfBirth="2026-06-12", age=43)
+#   -&gt; dateOfBirth: date of birth cannot be in the future
+# Profile(dateOfBirth="1995-06-12", age=430)
+#   -&gt; age: Input should be less than or equal to 120
+# Profile(dateOfBirth="1995-06-12", age=43) -&gt; OK</code></pre>
+          </div>
+        </div>
+
+        <div class="sec-head reveal" id="s10">
+          <div class="sec-num">10</div>
+          <h2>Complex / Dependent Validation</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          The most powerful flavor: a field's rules depend on
+          <strong>other fields</strong>. The pipeline can encode arbitrary
+          cross-field logic:
+        </p>
+        <ul class="reveal">
+          <li>
+            <strong>Password confirmation</strong>:
+            <code>passwordConfirmation</code> must exactly match
+            <code>password</code>; and <code>password</code> must be at least 8
+            characters. Two different strings yield
+            <em>"passwords don't match"</em>; a 6-character password yields
+            <em>"string must contain at least 8 characters"</em>.
+          </li>
+          <li>
+            <strong>Conditional requirement</strong>: <code>partner</code> is
+            optional when <code>married</code> is <code>false</code>, but the
+            moment <code>married</code> is <code>true</code> the
+            <code>partner</code> name becomes required:
+            <em>"partner name is required when married is true"</em>.
+          </li>
+        </ul>
+        <div class="demo reveal">
+          <div class="dhead">
+            <span class="method">POST</span> /api/valid/complex
+          </div>
+          <div class="dbody">
+            <div class="req">
+              <span class="lbl">Mismatched + short password</span>
+              <pre>
+{ "password":"random", "passwordConfirmation":"another", "married":false }</pre
+              >
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Response <span class="status s400">400</span></span
+              >
+              <pre>
+password: string must contain at least 8 characters
+passwordConfirmation: passwords don't match</pre
+              >
+            </div>
+            <div class="req">
+              <span class="lbl">married=true but no partner</span>
+              <pre>
+{ "password":"random12", "passwordConfirmation":"random12", "married":true }</pre
+              >
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >Response <span class="status s400">400</span></span
+              >
+              <pre>partner: partner name is required when married is true</pre>
+            </div>
+            <div class="req">
+              <span class="lbl">Complete</span>
+              <pre>{ "password":"random12", "passwordConfirmation":"random12", "married":true, "partner":"Sam" }  -&gt;  <span style="color:#3f6f4e">200</span></pre>
+            </div>
+          </div>
+        </div>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">record Signup(
+        @NotBlank
+        @Size(min = 8, message = "must be at least 8 characters")
+        String password,
+
+        @NotBlank String passwordConfirmation,
+
+        @NotNull Boolean married,
+
+        String partner) {             // required only when married
+
+    // A field annotation can only ever see its own value, so a
+    // cross-field rule needs somewhere else to live. @AssertTrue on a
+    // derived getter is the simplest home: Jakarta calls it like any
+    // other constraint, and the method name becomes the error's field.
+    @AssertTrue(message = "passwords don't match")
+    boolean isPasswordConfirmed() {
+        return password != null &amp;&amp; password.equals(passwordConfirmation);
+    }
+
+    @AssertTrue(message = "partner is required when married is true")
+    boolean isPartnerPresentWhenMarried() {
+        return !Boolean.TRUE.equals(married)
+                || (partner != null &amp;&amp; !partner.isBlank());
+    }
+}</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from pydantic import BaseModel, Field, model_validator
+
+
+class Signup(BaseModel):
+    password: str = Field(min_length=8)
+    passwordConfirmation: str
+    married: bool
+    partner: str | None = None
+
+    # mode="after": runs once all fields are parsed,
+    # so it can compare them against each other.
+    @model_validator(mode="after")
+    def cross_field_rules(self):
+        if self.password != self.passwordConfirmation:
+            raise ValueError("passwords don't match")
+        if self.married and not self.partner:
+            raise ValueError(
+                "partner name is required when married is true")
+        return self
+
+
+# Signup(password="random", passwordConfirmation="another",
+#        married=False)
+#   -&gt; password: String should have at least 8 characters
+#   -&gt; Value error, passwords don't match</code></pre>
+          </div>
+        </div>
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 720 230"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <text
+                x="360"
+                y="26"
+                text-anchor="middle"
+                font-size="12"
+                font-weight="700"
+                fill="#8f2f20"
+              >
+                THE FOUR FLAVORS, INCREASING STRICTNESS &amp; CONTEXT -&gt;
+              </text>
+              <g font-size="11" font-weight="700">
+                <rect
+                  x="20"
+                  y="56"
+                  width="160"
+                  height="140"
+                  rx="11"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="100" y="84" text-anchor="middle" fill="#b8402e">
+                  TYPE
+                </text>
+                <text
+                  x="100"
+                  y="112"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  is it the right
+                </text>
+                <text
+                  x="100"
+                  y="126"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  data type?
+                </text>
+                <text
+                  x="100"
+                  y="160"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  string / number
+                </text>
+                <text
+                  x="100"
+                  y="173"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  bool / array
+                </text>
+                <rect
+                  x="195"
+                  y="56"
+                  width="160"
+                  height="140"
+                  rx="11"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="275" y="84" text-anchor="middle" fill="#b8402e">
+                  SYNTACTIC
+                </text>
+                <text
+                  x="275"
+                  y="112"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  right structural
+                </text>
+                <text
+                  x="275"
+                  y="126"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  pattern?
+                </text>
+                <text
+                  x="275"
+                  y="160"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  email / phone
+                </text>
+                <text
+                  x="275"
+                  y="173"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  date format
+                </text>
+                <rect
+                  x="370"
+                  y="56"
+                  width="160"
+                  height="140"
+                  rx="11"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="450" y="84" text-anchor="middle" fill="#b8402e">
+                  SEMANTIC
+                </text>
+                <text
+                  x="450"
+                  y="112"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  does the value
+                </text>
+                <text
+                  x="450"
+                  y="126"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  make sense?
+                </text>
+                <text
+                  x="450"
+                  y="160"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  DOB not future
+                </text>
+                <text
+                  x="450"
+                  y="173"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  age &lt;= 120
+                </text>
+                <rect
+                  x="545"
+                  y="56"
+                  width="160"
+                  height="140"
+                  rx="11"
+                  fill="#f7d9d1"
+                  stroke="#b8402e"
+                  stroke-width="1.5"
+                />
+                <text x="625" y="84" text-anchor="middle" fill="#8f2f20">
+                  COMPLEX
+                </text>
+                <text
+                  x="625"
+                  y="112"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  depends on
+                </text>
+                <text
+                  x="625"
+                  y="126"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  other fields?
+                </text>
+                <text
+                  x="625"
+                  y="160"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#a06054"
+                >
+                  password match
+                </text>
+                <text
+                  x="625"
+                  y="173"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#a06054"
+                >
+                  married-&gt;partner
+                </text>
+              </g>
+            </svg>
+          </div>
+          <figcaption>
+            From "right type" to "right relationship", pick how strict the
+            endpoint needs to be
+          </figcaption>
+        </figure>
+
+        <!-- PART III -->
+        <div class="part-label reveal">Part III / Transformation</div>
+
+        <div class="sec-head reveal" id="s11">
+          <div class="sec-num">11</div>
+          <h2>Transformation as Type Casting</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          <strong>Transformation</strong> means executing operations on the
+          incoming data to convert it into a desirable format, either before
+          validation (so it <em>can</em> pass) or after it (to ready it for the
+          service layer). The textbook case is
+          <strong>pagination query parameters</strong>.
+        </p>
+        <p class="reveal">
+          Consider <code>GET /bookmarks?page=2&amp;limit=20</code> with these
+          requirements:
+        </p>
+        <ul class="reveal">
+          <li>
+            <code>page</code>, a number, greater than 0 and less than 500.
+          </li>
+          <li>
+            <code>limit</code>, a number, greater than 0 and less than 10,000
+            (at most 10,000 records returned at a time).
+          </li>
+        </ul>
+        <div class="note dark reveal">
+          <span class="tag">The catch</span> Query parameters are
+          <strong>always strings by default.</strong> Every value in the query
+          string arrives at your server as a string, they have no other native
+          type. So <code>page</code> arrives as the string <code>"2"</code>, not
+          the number <code>2</code>. Validation that demands a
+          <em>number</em> fails on its very first check, even though the client
+          did nothing wrong, strings are simply how query params work.
+        </div>
+        <p class="reveal">
+          The fix is not to error. It is the
+          <strong>server's responsibility</strong> to <em>cast</em> the string
+          into a number first. "Casting" is forcing one data type to become
+          another. Cast <code>"2"</code> -&gt; <code>2</code>, then run the
+          numeric validations. That casting step is the transformation.
+        </p>
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 760 150"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <defs>
+                <marker
+                  id="ar5"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b8402e" />
+                </marker>
+              </defs>
+              <g font-size="11" font-weight="700">
+                <rect
+                  x="20"
+                  y="50"
+                  width="150"
+                  height="56"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="95" y="74" text-anchor="middle" fill="#211e1a">
+                  ?page="2"
+                </text>
+                <text
+                  x="95"
+                  y="92"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  arrives as STRING
+                </text>
+                <rect
+                  x="225"
+                  y="42"
+                  width="170"
+                  height="72"
+                  rx="10"
+                  fill="#f7d9d1"
+                  stroke="#b8402e"
+                  stroke-width="1.5"
+                />
+                <text x="310" y="72" text-anchor="middle" fill="#8f2f20">
+                  TRANSFORM
+                </text>
+                <text
+                  x="310"
+                  y="90"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  cast "2" -&gt; 2
+                </text>
+                <text
+                  x="310"
+                  y="104"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  (force the type)
+                </text>
+                <rect
+                  x="450"
+                  y="50"
+                  width="150"
+                  height="56"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="525" y="74" text-anchor="middle" fill="#211e1a">
+                  page = 2
+                </text>
+                <text
+                  x="525"
+                  y="92"
+                  text-anchor="middle"
+                  font-size="9"
+                  font-weight="400"
+                  fill="#8d8475"
+                >
+                  now a NUMBER
+                </text>
+                <rect
+                  x="630"
+                  y="50"
+                  width="110"
+                  height="56"
+                  rx="9"
+                  fill="#e0e9dd"
+                  stroke="#3f6f4e"
+                />
+                <text
+                  x="685"
+                  y="74"
+                  text-anchor="middle"
+                  fill="#3f6f4e"
+                  font-size="10"
+                >
+                  VALIDATE
+                </text>
+                <text
+                  x="685"
+                  y="92"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#3f6f4e"
+                >
+                  0 &lt; n &lt; 500
+                </text>
+                <line
+                  x1="170"
+                  y1="78"
+                  x2="221"
+                  y2="78"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar5)"
+                />
+                <line
+                  x1="395"
+                  y1="78"
+                  x2="446"
+                  y2="78"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar5)"
+                />
+                <line
+                  x1="600"
+                  y1="78"
+                  x2="626"
+                  y2="78"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar5)"
+                />
+              </g>
+            </svg>
+          </div>
+          <figcaption>
+            Transformation runs <b>before</b> validation here, cast the string,
+            then the numeric rules can even apply
+          </figcaption>
+        </figure>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Query parameters are always strings on the wire. Spring casts
+// them for you, so here the transform happens BEFORE validation
+// rather than being something you write.
+@Validated                      // required for parameter constraints
+@RestController
+class BookQueryController {
+
+    @GetMapping("/api/books")
+    List&lt;Book&gt; list(
+            @RequestParam(defaultValue = "1")
+            @Min(value = 1, message = "must be 1 or more")
+            @Max(value = 499, message = "must be 499 or less")
+            int page,
+
+            @RequestParam(defaultValue = "20")
+            @Min(1) @Max(9999) int limit) {
+
+        return books.page(page, limit);
+    }
+}
+// ?page=abc -&gt; the cast fails first
+//              (MethodArgumentTypeMismatchException)
+// ?page=0   -&gt; the cast succeeds, then the constraint rejects it
+//
+// @Validated on the class is what makes parameter constraints run.
+// On a @RequestBody, @Valid on the parameter is enough.</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from pydantic import BaseModel, Field
+
+
+class Pagination(BaseModel):
+    # Pydantic AUTO-CASTS the incoming string "2" into
+    # int 2 (transform), THEN enforces gt/lt (validate)
+    # -- both steps in one schema, in the right order.
+    page:  int = Field(gt=0, lt=500)
+    limit: int = Field(gt=0, lt=10_000)
+
+
+# request: /bookmarks?page=2&amp;limit=20
+# (both values arrive as strings)
+#
+# Pagination(page="2", limit="20")
+#   -&gt; Pagination(page=2, limit=20)   # real ints
+#
+# Pagination(page="0", limit="20")
+#   -&gt; page: Input should be greater than 0
+#
+# Pagination(page="abc", limit="20")
+#   -&gt; page: Input should be a valid integer</code></pre>
+          </div>
+        </div>
+
+        <div class="sec-head reveal" id="s12">
+          <div class="sec-num">12</div>
+          <h2>Transformation as Normalization</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          Transformation also <em>cleans up</em> data after it validates,
+          reshaping it into what the service layer prefers. The server quietly
+          normalizes the payload before doing anything with it:
+        </p>
+        <ul class="reveal">
+          <li>
+            An <strong>email</strong> sent with mixed case,
+            <code>Test@TEST.com</code>, comes back stored as all-lowercase
+            <code>test@test.com</code>.
+          </li>
+          <li>
+            A <strong>phone</strong> string gets a <code>+</code> prefix
+            injected before it.
+          </li>
+          <li>
+            A <strong>date</strong> gets recomputed into the canonical format
+            the backend expects.
+          </li>
+        </ul>
+        <div class="demo reveal">
+          <div class="dhead">
+            <span class="method">POST</span> /api/valid/transform
+          </div>
+          <div class="dbody">
+            <div class="req">
+              <span class="lbl">What the client sent</span>
+              <pre>
+{ "email":"Test@TEST.com", "phone":"1234567", "date":"2025-11-05" }</pre
+              >
+            </div>
+            <div class="res">
+              <span class="lbl"
+                >What the server returns <span class="status s200">200</span>,
+                normalized</span
+              >
+              <pre>
+{ "email":"test@test.com", "phone":"+1234567", "date":"2025-11-05" }</pre
+              >
+            </div>
+          </div>
+        </div>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Normalisation runs AFTER validation passes and BEFORE the service
+// layer sees anything. A record is immutable, so it hands back a new
+// value instead of mutating in place.
+record Contact(String email, String phone) {
+
+    Contact normalized() {
+        String cleanEmail = email.strip().toLowerCase(Locale.ROOT);
+
+        String cleanPhone = phone.strip();
+        if (!cleanPhone.startsWith("+")) {
+            cleanPhone = "+" + cleanPhone;   // inject the missing +
+        }
+
+        return new Contact(cleanEmail, cleanPhone);
+    }
+}
+// "Test@TEST.com" -&gt; "test@test.com"
+// "1234567"       -&gt; "+1234567"
+//
+// Locale.ROOT is not decoration. Under a Turkish locale
+// "I".toLowerCase() returns a dotless i, and the same email would
+// normalise to two different strings on two different servers.</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from pydantic import BaseModel, EmailStr, field_validator
+
+
+class Contact(BaseModel):
+    email: EmailStr
+    phone: str
+
+    # field_validators double as transformers: whatever
+    # they return REPLACES the incoming value.
+    @field_validator("email")
+    @classmethod
+    def lower_email(cls, v: str) -&gt; str:
+        return v.strip().lower()       # normalize case
+
+    @field_validator("phone")
+    @classmethod
+    def add_plus(cls, v: str) -&gt; str:
+        v = v.strip()
+        return v if v.startswith("+") else "+" + v
+
+
+# Contact(email="Test@TEST.com", phone="1234567")
+#   -&gt; email="test@test.com", phone="+1234567"</code></pre>
+          </div>
+        </div>
+
+        <div class="sec-head reveal" id="s13">
+          <div class="sec-num">13</div>
+          <h2>One Combined Pipeline</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          In practice validations and transformations are
+          <strong>paired into a single pipeline</strong>. The reason is
+          locality: the entire "input data layer", every requirement
+          <em>and</em> every operation performed on incoming data before any
+          business logic runs, lives in <strong>one place</strong>. You never
+          have to hunt across files to discover what an endpoint expects or what
+          it quietly does to the data. The pipeline can transform -&gt;
+          validate, or validate -&gt; transform, in either order, as the
+          requirements demand.
+        </p>
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 760 160"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <defs>
+                <marker
+                  id="ar6"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b8402e" />
+                </marker>
+              </defs>
+              <rect
+                x="120"
+                y="40"
+                width="520"
+                height="80"
+                rx="14"
+                fill="#f7d9d1"
+                stroke="#b8402e"
+                stroke-width="1.6"
+              />
+              <text
+                x="380"
+                y="32"
+                text-anchor="middle"
+                font-size="11"
+                font-weight="700"
+                fill="#8f2f20"
+              >
+                VALIDATION &amp; TRANSFORMATION PIPELINE, one place
+              </text>
+              <g font-size="10.5" font-weight="700">
+                <rect
+                  x="150"
+                  y="62"
+                  width="120"
+                  height="38"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#b8402e"
+                />
+                <text x="210" y="86" text-anchor="middle" fill="#8f2f20">
+                  transform
+                </text>
+                <rect
+                  x="320"
+                  y="62"
+                  width="120"
+                  height="38"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#b8402e"
+                />
+                <text x="380" y="86" text-anchor="middle" fill="#8f2f20">
+                  validate
+                </text>
+                <rect
+                  x="490"
+                  y="62"
+                  width="120"
+                  height="38"
+                  rx="8"
+                  fill="#fff"
+                  stroke="#b8402e"
+                />
+                <text x="550" y="86" text-anchor="middle" fill="#8f2f20">
+                  transform
+                </text>
+                <line
+                  x1="270"
+                  y1="81"
+                  x2="316"
+                  y2="81"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar6)"
+                />
+                <line
+                  x1="440"
+                  y1="81"
+                  x2="486"
+                  y2="81"
+                  stroke="#b8402e"
+                  stroke-width="2"
+                  marker-end="url(#ar6)"
+                />
+              </g>
+              <text
+                x="210"
+                y="135"
+                text-anchor="middle"
+                font-size="8.5"
+                fill="#7a4135"
+              >
+                cast query strings
+              </text>
+              <text
+                x="380"
+                y="135"
+                text-anchor="middle"
+                font-size="8.5"
+                fill="#7a4135"
+              >
+                type / syntax / semantic / complex
+              </text>
+              <text
+                x="550"
+                y="135"
+                text-anchor="middle"
+                font-size="8.5"
+                fill="#7a4135"
+              >
+                lowercase / prefix / reformat
+              </text>
+            </svg>
+          </div>
+          <figcaption>
+            All input-layer logic, requirements and operations, collected in
+            <b>a single reusable middleware</b>
+          </figcaption>
+        </figure>
+
+        <!-- PART IV -->
+        <div class="part-label reveal">Part IV / The Golden Rule</div>
+
+        <div class="sec-head reveal" id="s14">
+          <div class="sec-num">14</div>
+          <h2>Frontend vs Backend Validation</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          A common and dangerous mistake is treating frontend validation as a
+          <strong>replacement</strong> for backend validation. They are not
+          interchangeable, they serve different purposes, and you need
+          <strong>both</strong> for every API.
+        </p>
+        <div class="defs reveal">
+          <div class="row">
+            <div class="term"><small>Frontend</small>For UX</div>
+            <div class="desc">
+              A web form validates as the user types and on submit, giving
+              <strong>immediate, friendly feedback</strong> ("that doesn't look
+              like an email") before any API call is made. Its entire job is
+              user experience. It is <em>not</em> about security or data
+              integrity.
+            </div>
+          </div>
+          <div class="row">
+            <div class="term"><small>Backend</small>For Security</div>
+            <div class="desc">
+              Server-side validation is <strong>mandatory</strong> and exists
+              for security and data integrity. It does not matter what the
+              client is or whether the client validated at all, the server must
+              be as strict and specific as possible on its own.
+            </div>
+          </div>
+        </div>
+        <p class="reveal">
+          Why can't the backend trust the frontend? Because a server can have
+          <strong>many different clients.</strong> A polished web app might
+          validate beautifully, but the same API can also be hit directly
+          through an API client like <strong>Postman or Insomnia</strong>, where
+          there is no frontend acting as a proxy and therefore no frontend
+          validation at all. If the backend ever depended on the frontend for
+          security or integrity, the server would break the moment the client
+          changed.
+        </p>
+        <figure class="reveal">
+          <div class="fig-frame">
+            <svg
+              viewBox="0 0 760 280"
+              xmlns="http://www.w3.org/2000/svg"
+              font-family="JetBrains Mono"
+            >
+              <defs>
+                <marker
+                  id="ar7"
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,0 L8,4 L0,8 z" fill="#b8402e" />
+                </marker>
+              </defs>
+              <g font-size="10.5" font-weight="700">
+                <rect
+                  x="30"
+                  y="22"
+                  width="190"
+                  height="56"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="125" y="44" text-anchor="middle" fill="#211e1a">
+                  WEB APP
+                </text>
+                <text
+                  x="125"
+                  y="62"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#3f6f4e"
+                >
+                  has FE validation (UX)
+                </text>
+                <rect
+                  x="30"
+                  y="112"
+                  width="190"
+                  height="56"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="125" y="134" text-anchor="middle" fill="#211e1a">
+                  POSTMAN / INSOMNIA
+                </text>
+                <text
+                  x="125"
+                  y="152"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#8f2f20"
+                >
+                  NO FE validation at all
+                </text>
+                <rect
+                  x="30"
+                  y="202"
+                  width="190"
+                  height="56"
+                  rx="9"
+                  fill="#fff"
+                  stroke="#d8cfbe"
+                />
+                <text x="125" y="224" text-anchor="middle" fill="#211e1a">
+                  MOBILE / 3RD PARTY
+                </text>
+                <text
+                  x="125"
+                  y="242"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#9a8f78"
+                >
+                  validation unknown
+                </text>
+                <rect
+                  x="430"
+                  y="80"
+                  width="300"
+                  height="120"
+                  rx="14"
+                  fill="#f7d9d1"
+                  stroke="#b8402e"
+                  stroke-width="1.8"
+                />
+                <text
+                  x="580"
+                  y="116"
+                  text-anchor="middle"
+                  font-size="13"
+                  fill="#8f2f20"
+                >
+                  SERVER
+                </text>
+                <text
+                  x="580"
+                  y="142"
+                  text-anchor="middle"
+                  font-size="10"
+                  fill="#8f2f20"
+                >
+                  BACKEND VALIDATION
+                </text>
+                <text
+                  x="580"
+                  y="160"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  strict / specific / mandatory
+                </text>
+                <text
+                  x="580"
+                  y="176"
+                  text-anchor="middle"
+                  font-size="8.5"
+                  font-weight="400"
+                  fill="#7a4135"
+                >
+                  security &amp; data integrity, for ALL clients
+                </text>
+                <line
+                  x1="220"
+                  y1="50"
+                  x2="426"
+                  y2="110"
+                  stroke="#b8402e"
+                  stroke-width="1.8"
+                  marker-end="url(#ar7)"
+                />
+                <line
+                  x1="220"
+                  y1="140"
+                  x2="426"
+                  y2="140"
+                  stroke="#b8402e"
+                  stroke-width="1.8"
+                  marker-end="url(#ar7)"
+                />
+                <line
+                  x1="220"
+                  y1="230"
+                  x2="426"
+                  y2="170"
+                  stroke="#b8402e"
+                  stroke-width="1.8"
+                  marker-end="url(#ar7)"
+                />
+              </g>
+            </svg>
+          </div>
+          <figcaption>
+            One server, many clients, only the <b>backend</b> gate is guaranteed
+            to run, so it must never be skippable
+          </figcaption>
+        </figure>
+        <p class="reveal">
+          When the two are wired up correctly they complement each other: in a
+          web form, an invalid email blocks the submit and shows an inline
+          error, <strong>no API call is even made</strong>. Fix it to a real
+          address and the submit fires a proper request; the payload is sent,
+          the server validates again, and returns <code>200</code>. The frontend
+          delivered instant feedback; the backend delivered the guarantee.
+        </p>
+        <div class="note reveal">
+          <span class="tag">The rule, stated plainly</span> Design your
+          server-side validation to be as strict and specific as possible
+          <em>without ever thinking about</em> what the client validation looks
+          like. Frontend validation is for user experience; backend validation
+          is for security and data integrity. You always need both.
+        </div>
+
+        <div class="sec-head reveal" id="s15">
+          <div class="sec-num">15</div>
+          <h2>Full Annotated Controller</h2>
+        </div>
+        <div class="sec-divider reveal"></div>
+        <p class="reveal">
+          Putting the whole picture together: a complete controller that
+          route-matches, runs the combined pipeline (transform -&gt; validate
+          -&gt; normalize) <em>before</em> any business logic, returns a clean
+          <code>400</code> on failure, and only then calls the service layer,
+          which calls the repository. Both ends shown in full.
+        </p>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java</button
+              ><button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// ---- schema (the gate) ----
+record CreateBook(
+        @NotBlank(message = "is required")
+        @Size(min = 5, max = 100) String name) {}
+
+record Book(Long id, String name) {}
+
+// ---- CONTROLLER: owns HTTP and the validation gate ----
+@RestController
+@RequestMapping("/api/books")
+class BookController {
+
+    private final BookService books;
+
+    BookController(BookService books) {
+        this.books = books;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    Book create(@Valid @RequestBody CreateBook body) {
+        // === the gate has already closed behind us ===
+        // If @Valid had failed, Spring would have thrown before
+        // entering this method and the database would never have been
+        // touched. Nothing below this line can see bad data.
+        return books.create(body.name().strip());
+    }
+}
+
+// ---- SERVICE: business logic, trusting its input ----
+@Service
+class BookService {
+
+    private final BookRepository repository;
+
+    BookService(BookRepository repository) {
+        this.repository = repository;
+    }
+
+    Book create(String name) {
+        return repository.save(new Book(null, name));
+    }
+}
+// That is the whole point of a gate: a bad request becomes a 400 at
+// the edge, not a confusing 500 from a constraint violation raised
+// deep inside the database.</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, field_validator
+
+app = FastAPI()
+
+
+# ---- schema (the gate) ----
+class CreateBook(BaseModel):
+    name: str = Field(min_length=5, max_length=100)
+
+    @field_validator("name")
+    @classmethod
+    def trim(cls, v: str) -&gt; str:
+        return v.strip()          # transform / normalize
+
+
+class Book(BaseModel):
+    id: int
+    name: str
+
+
+# ---- service + repository (sketched) ----
+def create_book(name: str) -&gt; Book:
+    # service logic ... repository INSERT ... then:
+    return Book(id=1, name=name)
+
+
+# ---- CONTROLLER ----
+# FastAPI runs the CreateBook schema (the GATE) BEFORE
+# this function body. A bad payload never enters the
+# function, the client gets an automatic 422/400, so
+# the DB is never touched and no client mistake leaks
+# out as a confusing 500.
+@app.post("/api/books", status_code=201)
+def create_book_endpoint(body: CreateBook) -&gt; Book:
+    # validation already passed, straight to logic
+    try:
+        return create_book(body.name)  # service -&gt; repo
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="could not create book")
+
+
+# run:  uvicorn main:app --reload</code></pre>
+          </div>
+        </div>
+
+        <div class="note dark reveal">
+          <span class="tag">The whole topic, in one breath</span> Validations
+          and transformations are a small set of rules you keep in mind while
+          designing APIs. They live at the entry point of the controller, run
+          before any business logic, reject bad data with a clear
+          <code>400</code> instead of a confusing <code>500</code>, come in four
+          flavors (type, syntactic, semantic, complex), pair with
+          transformations (casting and normalization) into one pipeline, and on
+          the backend are mandatory for security and data integrity, no matter
+          what the client does.
+        </div>
+
+        <footer class="bfp-footer">
+          System Design - Backend / Chapter 05 / Validation. Code targets Java
+          21, Spring Boot 3.3 and Python 3.11+.
+        </footer>
+      </main>
+    </div>
+    <script>
+      const io = new IntersectionObserver(
+        (es) => {
+          es.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.06, rootMargin: "0px 0px -40px 0px" },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+      const links = [...document.querySelectorAll(".toc a")],
+        secs = links.map((a) => document.querySelector(a.getAttribute("href")));
+      const spy = new IntersectionObserver(
+        (es) => {
+          es.forEach((e) => {
+            if (e.isIntersecting) {
+              const id = "#" + e.target.id;
+              links.forEach((a) =>
+                a.classList.toggle("active", a.getAttribute("href") === id),
+              );
+            }
+          });
+        },
+        { rootMargin: "-20% 0px -70% 0px" },
+      );
+      secs.forEach((s) => s && spy.observe(s));
+    </script>
+    <!-- CHAPTER NAVIGATION -->
+    <nav class="chapter-nav" id="chapterNav">
+      <a
+        href="../../04-authentication-and-authorization/html_notes/notes.html"
+        class="nav-chapter-link"
+        ><span class="nav-arrow"
+          ><svg
+            class="ico-arrow"
+            width="15"
+            height="15"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="13.5" y1="8" x2="3.5" y2="8" />
+            <polyline points="7.5,4 3.5,8 7.5,12" /></svg></span
+        ><span class="nav-label"
+          ><span class="nav-small">Chapter 4</span>Authentication &
+          Authorization</span
+        ></a
+      >
+      <a href="../../index.html" class="nav-indicator"
+        ><span class="nav-dot"></span> Chapter 5
+        <span class="nav-sep">/</span> 24</a
+      >
+      <a
+        href="../../06-controllers-services-repositories/html_notes/notes.html"
+        class="nav-chapter-link nav-next"
+        ><span class="nav-label"
+          ><span class="nav-small">Chapter 6</span>Controllers, Services &
+          Middlewares</span
+        ><span class="nav-arrow"
+          ><svg
+            class="ico-arrow"
+            width="15"
+            height="15"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="2.5" y1="8" x2="12.5" y2="8" />
+            <polyline points="8.5,4 12.5,8 8.5,12" /></svg></span
+      ></a>
+    </nav>
+    <script>
+      hljs.highlightAll();
+    </script>
+    <script src="../../assets/copy-button.js"></script>
+    <script src="../../assets/enhancements.js"></script>
+    <script src="../../assets/shell.js"></script>
+  </body>
+</html>

@@ -17,10 +17,6 @@
       href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='21'%20font-family='Georgia,serif'%20font-size='13'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E"
     />
     <style>
-      :root {
-        --code-orange: #e0896a;
-      }
-
       * {
         margin: 0;
         padding: 0;
@@ -154,45 +150,6 @@
         color: inherit;
         font-size: inherit;
       }
-      .code-label {
-        position: absolute;
-        top: 0;
-        right: 0;
-        background: var(--accent);
-        color: #fff;
-        font-family: "Spline Sans", system-ui, sans-serif;
-        font-size: 0.6rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        padding: 0.25rem 0.7rem;
-        border-radius: 0 6px 0 4px;
-      }
-      .syn-kw {
-        color: #d8b66a;
-      }
-      .syn-fn {
-        color: #7fb0c9;
-      }
-      .syn-str {
-        color: #a9c98a;
-      }
-      .syn-cm {
-        color: #7d7468;
-        font-style: italic;
-      }
-      .syn-num {
-        color: #d8b66a;
-      }
-      .syn-type {
-        color: #c58fb0;
-      }
-      .syn-op {
-        color: var(--line);
-      }
-      .syn-builtin {
-        color: #d8b66a;
-      }
 
       .callout {
         border-left: 3px solid var(--accent);
@@ -218,10 +175,10 @@
         color: var(--blue);
       }
       .callout.warn {
-        border-left-color: var(--code-orange);
+        border-left-color: var(--gold);
       }
       .callout.warn .callout-title {
-        color: var(--code-orange);
+        color: var(--gold);
       }
 
       .diagram-container {
@@ -343,23 +300,6 @@
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 0.95rem;
         color: var(--accent-2);
-      }
-
-      .back-to-top {
-        display: block;
-        text-align: center;
-        padding: 2rem 0;
-        font-family: "Spline Sans", system-ui, sans-serif;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        color: var(--ink-faint);
-        text-decoration: none;
-        margin-top: 3rem;
-        border-top: 1px solid var(--line);
-      }
-      .back-to-top:hover {
-        color: var(--accent);
       }
 
       /* -- Triple column cards -- */
@@ -515,6 +455,11 @@
       }
     </style>
     <link rel="stylesheet" href="../../assets/copy-button.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="../../assets/code-card.css" />
     <link rel="stylesheet" href="../../assets/enhancements.css" />
     <link rel="stylesheet" href="../../assets/shell.css" />
@@ -1076,52 +1021,77 @@
             </tr>
             <tr>
               <td><strong>Background jobs</strong></td>
-              <td>In-process goroutine/thread</td>
+              <td>In-process thread</td>
               <td>Redis queue, RabbitMQ, Kafka</td>
             </tr>
           </tbody>
         </table>
 
-        <h4>Stateless session management in Go</h4>
+        <h4>Stateless session management</h4>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">import</span> (
-    <span class="syn-str">"context"</span>
-    <span class="syn-str">"github.com/redis/go-redis/v9"</span>
-    <span class="syn-str">"time"</span>
-)
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Spring Session moves the HttpSession out of the process and into
+// Redis, so any instance can serve any request. Add
+// spring-session-data-redis and the configuration is the whole job:
+//
+//   spring.session.store-type: redis
+//   spring.session.redis.namespace: app:session
+//   server.servlet.session.timeout: 24h
+//
+// Controllers keep using HttpSession and never learn that it moved.
+// When you want your own keys instead of the servlet session:
+@Service
+class Sessions {
 
-<span class="syn-kw">var</span> rdb = redis.<span class="syn-fn">NewClient</span>(&redis.Options{Addr: <span class="syn-str">"redis:6379"</span>})
+    private final StringRedisTemplate redis;
 
-<span class="syn-cm">// StoreSession saves session data in Redis so ANY server can read it.</span>
-<span class="syn-kw">func</span> <span class="syn-fn">StoreSession</span>(ctx <span class="syn-type">context.Context</span>, sessionID <span class="syn-type">string</span>, userID <span class="syn-type">string</span>) <span class="syn-type">error</span> {
-    <span class="syn-kw">return</span> rdb.<span class="syn-fn">Set</span>(ctx, <span class="syn-str">"session:"</span>+sessionID, userID, <span class="syn-num">24</span>*time.Hour).<span class="syn-fn">Err</span>()
-}
+    Sessions(StringRedisTemplate redis) {
+        this.redis = redis;
+    }
 
-<span class="syn-cm">// GetSession retrieves session data, works regardless of which server</span>
-<span class="syn-cm">// the request lands on, because Redis is shared across all instances.</span>
-<span class="syn-kw">func</span> <span class="syn-fn">GetSession</span>(ctx <span class="syn-type">context.Context</span>, sessionID <span class="syn-type">string</span>) (<span class="syn-type">string</span>, <span class="syn-type">error</span>) {
-    <span class="syn-kw">return</span> rdb.<span class="syn-fn">Get</span>(ctx, <span class="syn-str">"session:"</span>+sessionID).<span class="syn-fn">Result</span>()
+    void store(String sessionId, String userId) {
+        redis.opsForValue().set("session:" + sessionId, userId,
+                Duration.ofHours(24));
+    }
+
+    Optional&lt;String&gt; lookup(String sessionId) {
+        // Every instance reads the same Redis, so it does not matter
+        // which one the load balancer happened to pick.
+        return Optional.ofNullable(
+                redis.opsForValue().get("session:" + sessionId));
+    }
 }</code></pre>
-
-        <h4>Stateless session in Python (FastAPI + Redis)</h4>
-
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-kw">import</span> redis, uuid
-<span class="syn-kw">from</span> fastapi <span class="syn-kw">import</span> FastAPI, Response, Cookie
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">import redis, uuid
+from fastapi import FastAPI, Response, Cookie
 
 app = FastAPI()
-r = redis.<span class="syn-fn">Redis</span>(host=<span class="syn-str">"redis"</span>, decode_responses=<span class="syn-kw">True</span>)
+r = redis.Redis(host="redis", decode_responses=True)
 
-@app.<span class="syn-fn">post</span>(<span class="syn-str">"/login"</span>)
-<span class="syn-kw">def</span> <span class="syn-fn">login</span>(response: Response, email: <span class="syn-type">str</span>, password: <span class="syn-type">str</span>):
-    user = <span class="syn-fn">authenticate</span>(email, password)
-    session_id = <span class="syn-builtin">str</span>(uuid.<span class="syn-fn">uuid4</span>())
+@app.post("/login")
+def login(response: Response, email: str, password: str):
+    user = authenticate(email, password)
+    session_id = str(uuid.uuid4())
 
-    <span class="syn-cm"># Store in Redis, accessible by ALL server instances</span>
-    r.<span class="syn-fn">setex</span>(<span class="syn-str">f"session:</span>{session_id}<span class="syn-str">"</span>, <span class="syn-num">86400</span>, user.id)
-    response.<span class="syn-fn">set_cookie</span>(<span class="syn-str">"session_id"</span>, session_id, httponly=<span class="syn-kw">True</span>)
-    <span class="syn-kw">return</span> {<span class="syn-str">"status"</span>: <span class="syn-str">"ok"</span>}</code></pre>
+    # Store in Redis, accessible by ALL server instances
+    r.setex(f"session:{session_id}", 86400, user.id)
+    response.set_cookie("session_id", session_id, httponly=True)
+    return {"status": "ok"}</code></pre>
+          </div>
+        </div>
 
         <div class="callout">
           <div class="callout-title">Thumb rule</div>
@@ -1720,34 +1690,48 @@ r = redis.<span class="syn-fn">Redis</span>(host=<span class="syn-str">"redis"</
           </div>
         </div>
 
-        <h4>Health endpoint in Go</h4>
+        <h4>A health endpoint that tests its dependencies</h4>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-cm">// A production health check verifies downstream dependencies, not just "I'm alive."</span>
-http.<span class="syn-fn">HandleFunc</span>(<span class="syn-str">"/health"</span>, <span class="syn-kw">func</span>(w <span class="syn-type">http.ResponseWriter</span>, r *<span class="syn-type">http.Request</span>) {
-    checks := <span class="syn-kw">map</span>[<span class="syn-type">string</span>]<span class="syn-type">string</span>{}
+        <div class="codeblock single">
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-java"></span>
+              BrokerHealthIndicator.java</span
+            >
+          </div>
+          <pre><code class="language-java">// A real health check tests what you depend on, not just "I am alive".
+// Actuator aggregates every HealthIndicator on the classpath, so the
+// database and Redis checks arrive with their starters, and the
+// endpoint returns 503 the moment any one of them reports DOWN:
+//
+//   management.endpoint.health.show-details: always
+//   management.endpoint.health.group.readiness.include: db,redis
+//
+// Write an indicator only for things Actuator cannot know about:
+@Component
+class BrokerHealthIndicator implements HealthIndicator {
 
-    <span class="syn-kw">if</span> err := db.<span class="syn-fn">PingContext</span>(r.<span class="syn-fn">Context</span>()); err != <span class="syn-kw">nil</span> {
-        checks[<span class="syn-str">"database"</span>] = <span class="syn-str">"unreachable"</span>
-    } <span class="syn-kw">else</span> {
-        checks[<span class="syn-str">"database"</span>] = <span class="syn-str">"ok"</span>
+    private final RabbitTemplate rabbit;
+
+    BrokerHealthIndicator(RabbitTemplate rabbit) {
+        this.rabbit = rabbit;
     }
 
-    <span class="syn-kw">if</span> err := rdb.<span class="syn-fn">Ping</span>(r.<span class="syn-fn">Context</span>()).<span class="syn-fn">Err</span>(); err != <span class="syn-kw">nil</span> {
-        checks[<span class="syn-str">"redis"</span>] = <span class="syn-str">"unreachable"</span>
-    } <span class="syn-kw">else</span> {
-        checks[<span class="syn-str">"redis"</span>] = <span class="syn-str">"ok"</span>
-    }
-
-    <span class="syn-kw">for</span> _, v := <span class="syn-kw">range</span> checks {
-        <span class="syn-kw">if</span> v != <span class="syn-str">"ok"</span> {
-            w.<span class="syn-fn">WriteHeader</span>(http.StatusServiceUnavailable)
-            json.<span class="syn-fn">NewEncoder</span>(w).<span class="syn-fn">Encode</span>(checks)
-            <span class="syn-kw">return</span>
+    @Override
+    public Health health() {
+        try {
+            rabbit.execute(channel -&gt;
+                    channel.queueDeclarePassive("emails"));
+            return Health.up().build();
+        } catch (Exception e) {
+            return Health.down()
+                    .withDetail("broker", "unreachable")
+                    .build();
         }
     }
-    json.<span class="syn-fn">NewEncoder</span>(w).<span class="syn-fn">Encode</span>(checks)
-})</code></pre>
+}</code></pre>
+        </div>
 
         <hr class="section-rule" />
 
@@ -2556,27 +2540,34 @@ http.<span class="syn-fn">HandleFunc</span>(<span class="syn-str">"/health"</spa
           long-running tasks.
         </p>
 
-        <pre><code><span class="code-label">Cloudflare Worker</span>
-<span class="syn-cm">// Edge authentication, runs in 2-3ms at the closest CDN node</span>
-<span class="syn-kw">export default</span> {
-  <span class="syn-kw">async</span> <span class="syn-fn">fetch</span>(request, env) {
-    <span class="syn-kw">const</span> sessionId = <span class="syn-fn">getCookie</span>(request, <span class="syn-str">"session_id"</span>);
+        <div class="codeblock single">
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-http"></span> worker.js</span
+            >
+          </div>
+          <pre><code class="language-javascript">// Edge authentication, runs in 2-3ms at the closest CDN node
+export default {
+  async fetch(request, env) {
+    const sessionId = getCookie(request, "session_id");
 
-    <span class="syn-kw">if</span> (!sessionId) {
-      <span class="syn-kw">return new</span> <span class="syn-type">Response</span>(<span class="syn-str">"Unauthorized"</span>, { status: <span class="syn-num">401</span> });
+    if (!sessionId) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    <span class="syn-cm">// Check session in edge KV store (global, low-latency)</span>
-    <span class="syn-kw">const</span> userId = <span class="syn-kw">await</span> env.SESSIONS.<span class="syn-fn">get</span>(sessionId);
-    <span class="syn-kw">if</span> (!userId) {
-      <span class="syn-kw">return new</span> <span class="syn-type">Response</span>(<span class="syn-str">"Unauthorized"</span>, { status: <span class="syn-num">401</span> });
+    // Check session in edge KV store (global, low-latency)
+    const userId = await env.SESSIONS.get(sessionId);
+    if (!userId) {
+      return new Response("Unauthorized", { status: 401 });
     }
 
-    <span class="syn-cm">// Authenticated -&gt; forward to origin server</span>
-    request.headers.<span class="syn-fn">set</span>(<span class="syn-str">"X-User-Id"</span>, userId);
-    <span class="syn-kw">return</span> <span class="syn-fn">fetch</span>(request);
+    // Authenticated -&gt; forward to origin server
+    request.headers.set("X-User-Id", userId);
+    return fetch(request);
   },
 };</code></pre>
+        </div>
 
         <hr class="section-rule" />
 
@@ -2625,71 +2616,86 @@ http.<span class="syn-fn">HandleFunc</span>(<span class="syn-str">"/health"</spa
           processing.
         </p>
 
-        <h4>Background job with Go and Redis</h4>
+        <h4>Background job with a queue</h4>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">import</span> (
-    <span class="syn-str">"context"</span>
-    <span class="syn-str">"encoding/json"</span>
-    <span class="syn-str">"github.com/redis/go-redis/v9"</span>
-)
-
-<span class="syn-kw">type</span> EmailJob <span class="syn-kw">struct</span> {
-    To       <span class="syn-type">string</span> <span class="syn-str">`json:"to"`</span>
-    Subject  <span class="syn-type">string</span> <span class="syn-str">`json:"subject"`</span>
-    Template <span class="syn-type">string</span> <span class="syn-str">`json:"template"`</span>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">record EmailJob(String to, String subject, String template) {
 }
 
-<span class="syn-cm">// Producer: push job to queue (called from your API handler)</span>
-<span class="syn-kw">func</span> <span class="syn-fn">EnqueueEmail</span>(ctx <span class="syn-type">context.Context</span>, job EmailJob) <span class="syn-type">error</span> {
-    data, _ := json.<span class="syn-fn">Marshal</span>(job)
-    <span class="syn-kw">return</span> rdb.<span class="syn-fn">LPush</span>(ctx, <span class="syn-str">"queue:emails"</span>, data).<span class="syn-fn">Err</span>()
+// Producer: called from the request thread. Hand the job over and
+// return, so the caller waits for the enqueue, not for the send.
+@Service
+class EmailQueue {
+
+    private final RabbitTemplate rabbit;
+
+    EmailQueue(RabbitTemplate rabbit) {
+        this.rabbit = rabbit;
+    }
+
+    void enqueue(EmailJob job) {
+        rabbit.convertAndSend("emails", job);
+    }
 }
 
-<span class="syn-cm">// Consumer: runs as a separate process (or goroutine)</span>
-<span class="syn-kw">func</span> <span class="syn-fn">EmailWorker</span>(ctx <span class="syn-type">context.Context</span>) {
-    <span class="syn-kw">for</span> {
-        result, err := rdb.<span class="syn-fn">BRPop</span>(ctx, <span class="syn-num">0</span>, <span class="syn-str">"queue:emails"</span>).<span class="syn-fn">Result</span>()
-        <span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> { <span class="syn-kw">continue</span> }
+// Consumer: a separate process, or just a separate thread pool. It
+// can be scaled independently of the web tier, which is most of the
+// point of moving the work off the request path.
+@Component
+class EmailWorker {
 
-        <span class="syn-kw">var</span> job EmailJob
-        json.<span class="syn-fn">Unmarshal</span>([]<span class="syn-kw">byte</span>(result[<span class="syn-num">1</span>]), &job)
-        <span class="syn-fn">sendEmail</span>(job)  <span class="syn-cm">// takes 300ms, but no user is waiting</span>
+    @RabbitListener(queues = "emails")
+    void handle(EmailJob job) {
+        sendEmail(job);   // 300ms, and nobody is waiting on it
     }
 }</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from celery import Celery
 
-        <h4>Background job with Python (Celery)</h4>
+app = Celery("tasks", broker="redis://localhost:6379/0")
 
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-kw">from</span> celery <span class="syn-kw">import</span> Celery
-
-app = Celery(<span class="syn-str">"tasks"</span>, broker=<span class="syn-str">"redis://localhost:6379/0"</span>)
-
-@app.<span class="syn-fn">task</span>(bind=<span class="syn-kw">True</span>, max_retries=<span class="syn-num">3</span>)
-<span class="syn-kw">def</span> <span class="syn-fn">send_invitation_email</span>(self, email: <span class="syn-type">str</span>, invite_url: <span class="syn-type">str</span>):
-    <span class="syn-kw">try</span>:
-        <span class="syn-fn">email_provider.send</span>(
+@app.task(bind=True, max_retries=3)
+def send_invitation_email(self, email: str, invite_url: str):
+    try:
+        email_provider.send(
             to=email,
-            subject=<span class="syn-str">"You've been invited!"</span>,
-            template=<span class="syn-str">"invite"</span>,
-            context={<span class="syn-str">"url"</span>: invite_url},
+            subject="You've been invited!",
+            template="invite",
+            context={"url": invite_url},
         )
-    <span class="syn-kw">except</span> <span class="syn-type">Exception</span> <span class="syn-kw">as</span> exc:
-        <span class="syn-kw">raise</span> self.<span class="syn-fn">retry</span>(exc=exc, countdown=<span class="syn-num">60</span>)
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60)
 
-<span class="syn-cm"># In your API handler, returns instantly to the user</span>
-send_invitation_email.<span class="syn-fn">delay</span>(<span class="syn-str">"user@example.com"</span>, <span class="syn-str">"https://app.co/invite/abc"</span>)</code></pre>
+# In your API handler, returns instantly to the user
+send_invitation_email.delay("user@example.com", "https://app.co/invite/abc")</code></pre>
+          </div>
+        </div>
 
         <div class="ref-box">
           <span
             ><strong>Reference:</strong>
-            <a href="https://docs.celeryq.dev/en/stable/" target="_blank"
-              >Celery Documentation</a
+            <a
+              href="https://docs.spring.io/spring-amqp/reference/"
+              target="_blank"
+              >Spring AMQP Reference</a
             >
             /
-            <a href="https://docs.bullmq.io/" target="_blank"
-              >BullMQ (Node.js)</a
-            >, production-grade task queues for Python and JavaScript
+            <a href="https://docs.celeryq.dev/en/stable/" target="_blank"
+              >Celery Documentation</a
+            >, production-grade task queues for Java and Python
             respectively.</span
           >
         </div>
@@ -2958,30 +2964,41 @@ send_invitation_email.<span class="syn-fn">delay</span>(<span class="syn-str">"u
           you always have the data to make informed scaling decisions.
         </p>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-cm">// A minimal but real observability setup: Prometheus metrics + structured logging</span>
-<span class="syn-kw">import</span> (
-    <span class="syn-str">"github.com/prometheus/client_golang/prometheus"</span>
-    <span class="syn-str">"github.com/prometheus/client_golang/prometheus/promhttp"</span>
-    <span class="syn-str">"log/slog"</span>
-)
+        <div class="codeblock single">
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-java"></span>
+              CheckoutService.java</span
+            >
+          </div>
+          <pre><code class="language-java">// Micrometer is the metrics façade; Actuator exposes it. Add
+// micrometer-registry-prometheus and /actuator/prometheus appears
+// for Prometheus to scrape and Grafana to draw.
+//
+//   management.endpoints.web.exposure.include: health,prometheus
+//   management.metrics.distribution:
+//     percentiles-histogram.http.server.requests: true
+//
+// Every HTTP request is already timed under http_server_requests.
+// Add your own timer where a business step matters more than a route:
+@Service
+class CheckoutService {
 
-<span class="syn-kw">var</span> requestDuration = prometheus.<span class="syn-fn">NewHistogramVec</span>(
-    prometheus.HistogramOpts{
-        Name:    <span class="syn-str">"http_request_duration_seconds"</span>,
-        Help:    <span class="syn-str">"Duration of HTTP requests"</span>,
-        Buckets: prometheus.<span class="syn-fn">DefBuckets</span>,
-    },
-    []<span class="syn-type">string</span>{<span class="syn-str">"method"</span>, <span class="syn-str">"path"</span>, <span class="syn-str">"status"</span>},
-)
+    private final MeterRegistry meters;
 
-<span class="syn-kw">func</span> <span class="syn-fn">init</span>() {
-    prometheus.<span class="syn-fn">MustRegister</span>(requestDuration)
-}
+    CheckoutService(MeterRegistry meters) {
+        this.meters = meters;
+    }
 
-<span class="syn-cm">// Expose /metrics for Prometheus to scrape</span>
-<span class="syn-cm">// Visualize in Grafana: p50, p90, p99 latency per endpoint</span>
-http.<span class="syn-fn">Handle</span>(<span class="syn-str">"/metrics"</span>, promhttp.<span class="syn-fn">Handler</span>())</code></pre>
+    Receipt checkout(Cart cart) {
+        return Timer.builder("checkout.duration")
+                .publishPercentiles(0.5, 0.9, 0.99)
+                .register(meters)
+                .record(() -&gt; settle(cart));
+    }
+}</code></pre>
+        </div>
 
         <h3>5. Performance is a mindset</h3>
 
@@ -3047,11 +3064,9 @@ http.<span class="syn-fn">Handle</span>(<span class="syn-str">"/metrics"</span>,
           </span>
         </div>
 
-        <a href="#top" class="back-to-top">^ Back to top</a>
-
         <footer class="bfp-footer">
-          System Design - Backend / Chapter 19 / Scaling II. Code targets Go
-          1.22+ and Python 3.11+.
+          System Design - Backend / Chapter 19 / Scaling II. Code targets Java
+          21, Spring Boot 3.3 and Python 3.11+.
         </footer>
       </main>
     </div>
@@ -3110,5 +3125,8 @@ http.<span class="syn-fn">Handle</span>(<span class="syn-str">"/metrics"</span>,
     <script src="../../assets/copy-button.js"></script>
     <script src="../../assets/enhancements.js"></script>
     <script src="../../assets/shell.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
   </body>
 </html>

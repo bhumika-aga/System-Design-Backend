@@ -17,10 +17,6 @@
       href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='21'%20font-family='Georgia,serif'%20font-size='13'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E"
     />
     <style>
-      :root {
-        --code-orange: #e0896a;
-      }
-
       * {
         margin: 0;
         padding: 0;
@@ -175,47 +171,6 @@
         font-size: inherit;
       }
 
-      .code-label {
-        position: absolute;
-        top: 0;
-        right: 0;
-        background: var(--accent);
-        color: #fff;
-        font-family: "Spline Sans", system-ui, sans-serif;
-        font-size: 0.6rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        padding: 0.25rem 0.7rem;
-        border-radius: 0 6px 0 4px;
-      }
-
-      .syn-kw {
-        color: #d8b66a;
-      }
-      .syn-fn {
-        color: #7fb0c9;
-      }
-      .syn-str {
-        color: #a9c98a;
-      }
-      .syn-cm {
-        color: #7d7468;
-        font-style: italic;
-      }
-      .syn-num {
-        color: #d8b66a;
-      }
-      .syn-type {
-        color: #c58fb0;
-      }
-      .syn-op {
-        color: var(--line);
-      }
-      .syn-builtin {
-        color: #d8b66a;
-      }
-
       /* -- Callouts -- */
       .callout {
         border-left: 3px solid var(--accent);
@@ -244,10 +199,10 @@
       }
 
       .callout.warn {
-        border-left-color: var(--code-orange);
+        border-left-color: var(--gold);
       }
       .callout.warn .callout-title {
-        color: var(--code-orange);
+        color: var(--gold);
       }
 
       /* -- Diagrams -- */
@@ -388,25 +343,6 @@
         font-size: 0.95rem;
         color: var(--accent-2);
         letter-spacing: 0.03em;
-      }
-
-      /* -- Back to top -- */
-      .back-to-top {
-        display: block;
-        text-align: center;
-        padding: 2rem 0;
-        font-family: "Spline Sans", system-ui, sans-serif;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        color: var(--ink-faint);
-        text-decoration: none;
-        margin-top: 3rem;
-        border-top: 1px solid var(--line);
-      }
-
-      .back-to-top:hover {
-        color: var(--accent);
       }
 
       /* -- Responsive -- */
@@ -551,6 +487,11 @@
       }
     </style>
     <link rel="stylesheet" href="../../assets/copy-button.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="../../assets/code-card.css" />
     <link rel="stylesheet" href="../../assets/enhancements.css" />
     <link rel="stylesheet" href="../../assets/shell.css" />
@@ -1274,68 +1215,71 @@
           the workflows where a 5-second hang loses revenue and trust.
         </p>
 
-        <h3>Measuring percentiles in Go</h3>
+        <h3>Measuring percentiles</h3>
 
         <p>
-          The Go standard library doesn't ship a percentile calculator, but you
-          can compute them from sorted slices or use a library. Here's a simple
-          implementation from scratch:
+          Neither the JDK nor Spring ships a percentile calculator, but it is
+          only a few lines, and writing it once is the quickest way to see what
+          the number actually means. In production you would let Micrometer
+          record the histogram for you:
         </p>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">package</span> main
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// The p-th percentile of a set of latencies. p is 0..100.
+// In production you would let Micrometer/Prometheus do this, but
+// computing it once by hand is the fastest way to see what it means.
+final class Latencies {
 
-<span class="syn-kw">import</span> (
-    <span class="syn-str">"fmt"</span>
-    <span class="syn-str">"math"</span>
-    <span class="syn-str">"sort"</span>
-    <span class="syn-str">"time"</span>
-)
+    static Duration percentile(List&lt;Duration&gt; samples, double p) {
+        if (samples.isEmpty()) {
+            return Duration.ZERO;
+        }
+        List&lt;Duration&gt; sorted = new ArrayList&lt;&gt;(samples);
+        Collections.sort(sorted);
 
-<span class="syn-cm">// Percentile returns the p-th percentile from a slice of durations.</span>
-<span class="syn-cm">// p must be between 0 and 100.</span>
-<span class="syn-kw">func</span> <span class="syn-fn">Percentile</span>(latencies []<span class="syn-type">time.Duration</span>, p <span class="syn-type">float64</span>) <span class="syn-type">time.Duration</span> {
-    <span class="syn-kw">if</span> len(latencies) == <span class="syn-num">0</span> {
-        <span class="syn-kw">return</span> <span class="syn-num">0</span>
-    }
-    sorted := <span class="syn-builtin">make</span>([]<span class="syn-type">time.Duration</span>, len(latencies))
-    <span class="syn-builtin">copy</span>(sorted, latencies)
-    sort.<span class="syn-fn">Slice</span>(sorted, <span class="syn-kw">func</span>(i, j <span class="syn-type">int</span>) <span class="syn-type">bool</span> {
-        <span class="syn-kw">return</span> sorted[i] < sorted[j]
-    })
-
-    rank := (p / <span class="syn-num">100.0</span>) * <span class="syn-type">float64</span>(len(sorted)<span class="syn-num">-1</span>)
-    idx  := <span class="syn-type">int</span>(math.<span class="syn-fn">Ceil</span>(rank))
-    <span class="syn-kw">return</span> sorted[idx]
-}
-
-<span class="syn-kw">func</span> <span class="syn-fn">main</span>() {
-    <span class="syn-cm">// Simulated latency samples</span>
-    samples := []<span class="syn-type">time.Duration</span>{
-        <span class="syn-num">12</span> * time.Millisecond, <span class="syn-num">15</span> * time.Millisecond,
-        <span class="syn-num">22</span> * time.Millisecond, <span class="syn-num">48</span> * time.Millisecond,
-        <span class="syn-num">95</span> * time.Millisecond, <span class="syn-num">110</span> * time.Millisecond,
-        <span class="syn-num">340</span> * time.Millisecond, <span class="syn-num">890</span> * time.Millisecond,
-        <span class="syn-num">1200</span> * time.Millisecond, <span class="syn-num">4800</span> * time.Millisecond,
+        double rank = (p / 100.0) * (sorted.size() - 1);
+        return sorted.get((int) Math.ceil(rank));
     }
 
-    fmt.<span class="syn-fn">Printf</span>(<span class="syn-str">"P50:  %v\n"</span>, <span class="syn-fn">Percentile</span>(samples, <span class="syn-num">50</span>))
-    fmt.<span class="syn-fn">Printf</span>(<span class="syn-str">"P90:  %v\n"</span>, <span class="syn-fn">Percentile</span>(samples, <span class="syn-num">90</span>))
-    fmt.<span class="syn-fn">Printf</span>(<span class="syn-str">"P99:  %v\n"</span>, <span class="syn-fn">Percentile</span>(samples, <span class="syn-num">99</span>))
+    public static void main(String[] args) {
+        List&lt;Duration&gt; samples =
+                Stream.of(12, 15, 22, 48, 95, 110, 340, 890, 1200, 4800)
+                        .map(Duration::ofMillis)
+                        .toList();
+
+        System.out.printf("P50: %s%n", percentile(samples, 50));
+        System.out.printf("P90: %s%n", percentile(samples, 90));
+        System.out.printf("P99: %s%n", percentile(samples, 99));
+        // P50: PT0.095S   half of all requests were faster than this
+        // P90: PT1.2S     the slowest tenth start here
+        // P99: PT4.8S     the number your angriest users actually feel
+    }
 }</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">import numpy as np
 
-        <h3>Measuring percentiles in Python</h3>
+# Simulated latency samples (in milliseconds)
+samples = [12, 15, 22, 48, 95, 110, 340, 890, 1200, 4800]
 
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-kw">import</span> numpy <span class="syn-kw">as</span> np
-
-<span class="syn-cm"># Simulated latency samples (in milliseconds)</span>
-samples = [<span class="syn-num">12</span>, <span class="syn-num">15</span>, <span class="syn-num">22</span>, <span class="syn-num">48</span>, <span class="syn-num">95</span>, <span class="syn-num">110</span>, <span class="syn-num">340</span>, <span class="syn-num">890</span>, <span class="syn-num">1200</span>, <span class="syn-num">4800</span>]
-
-<span class="syn-builtin">print</span>(<span class="syn-str">f"P50:  </span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">50</span>):.0f}<span class="syn-str">ms"</span>)
-<span class="syn-builtin">print</span>(<span class="syn-str">f"P90:  </span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">90</span>):.0f}<span class="syn-str">ms"</span>)
-<span class="syn-builtin">print</span>(<span class="syn-str">f"P99:  </span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">99</span>):.0f}<span class="syn-str">ms"</span>)
-<span class="syn-builtin">print</span>(<span class="syn-str">f"P99.9:</span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">99.9</span>):.0f}<span class="syn-str">ms"</span>)</code></pre>
+print(f"P50:  {np.percentile(samples, 50):.0f}ms")
+print(f"P90:  {np.percentile(samples, 90):.0f}ms")
+print(f"P99:  {np.percentile(samples, 99):.0f}ms")
+print(f"P99.9:{np.percentile(samples, 99.9):.0f}ms")</code></pre>
+          </div>
+        </div>
 
         <div class="ref-box">
           <span
@@ -1668,70 +1612,78 @@ samples = [<span class="syn-num">12</span>, <span class="syn-num">15</span>, <sp
           </p>
         </div>
 
-        <h3>Timing middleware in Go</h3>
+        <h3>Timing every request</h3>
 
         <p>
           Here's a practical middleware that logs per-request timing, so you can
           start identifying slow endpoints:
         </p>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">package</span> middleware
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Logs how long every request took. A filter sees the request on the
+// way in and the response on the way out, which is exactly the pair
+// of moments you need to time it.
+@Component
+class TimingFilter extends OncePerRequestFilter {
 
-<span class="syn-kw">import</span> (
-    <span class="syn-str">"log"</span>
-    <span class="syn-str">"net/http"</span>
-    <span class="syn-str">"time"</span>
-)
+    private static final Logger log =
+            LoggerFactory.getLogger(TimingFilter.class);
 
-<span class="syn-cm">// TimingMiddleware logs the duration of every HTTP request.</span>
-<span class="syn-kw">func</span> <span class="syn-fn">TimingMiddleware</span>(next <span class="syn-type">http.Handler</span>) <span class="syn-type">http.Handler</span> {
-    <span class="syn-kw">return</span> http.<span class="syn-fn">HandlerFunc</span>(<span class="syn-kw">func</span>(w <span class="syn-type">http.ResponseWriter</span>, r *<span class="syn-type">http.Request</span>) {
-        start := time.<span class="syn-fn">Now</span>()
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain)
+            throws ServletException, IOException {
 
-        <span class="syn-cm">// Wrap the ResponseWriter to capture the status code</span>
-        rw := &statusWriter{ResponseWriter: w, status: <span class="syn-num">200</span>}
-        next.<span class="syn-fn">ServeHTTP</span>(rw, r)
-
-        duration := time.<span class="syn-fn">Since</span>(start)
-        log.<span class="syn-fn">Printf</span>(
-            <span class="syn-str">"method=%s path=%s status=%d duration=%v"</span>,
-            r.Method, r.URL.Path, rw.status, duration,
-        )
-    })
-}
-
-<span class="syn-kw">type</span> statusWriter <span class="syn-kw">struct</span> {
-    <span class="syn-type">http.ResponseWriter</span>
-    status <span class="syn-type">int</span>
-}
-
-<span class="syn-kw">func</span> (w *statusWriter) <span class="syn-fn">WriteHeader</span>(code <span class="syn-type">int</span>) {
-    w.status = code
-    w.ResponseWriter.<span class="syn-fn">WriteHeader</span>(code)
+        long start = System.nanoTime();
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            // The status is already on the response by the time the
+            // chain returns, so there is nothing to wrap or capture.
+            long ms = (System.nanoTime() - start) / 1_000_000;
+            log.info("method={} path={} status={} duration={}ms",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    response.getStatus(),
+                    ms);
+        }
+    }
 }</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">import time
+import logging
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
 
-        <h3>Timing decorator in Python (FastAPI)</h3>
+logger = logging.getLogger("perf")
 
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-kw">import</span> time
-<span class="syn-kw">import</span> logging
-<span class="syn-kw">from</span> fastapi <span class="syn-kw">import</span> Request
-<span class="syn-kw">from</span> starlette.middleware.base <span class="syn-kw">import</span> BaseHTTPMiddleware
+class TimingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.perf_counter()
+        response = await call_next(request)
+        duration_ms = (time.perf_counter() - start) * 1000
 
-logger = logging.<span class="syn-fn">getLogger</span>(<span class="syn-str">"perf"</span>)
-
-<span class="syn-kw">class</span> <span class="syn-type">TimingMiddleware</span>(BaseHTTPMiddleware):
-    <span class="syn-kw">async def</span> <span class="syn-fn">dispatch</span>(self, request: Request, call_next):
-        start = time.<span class="syn-fn">perf_counter</span>()
-        response = <span class="syn-kw">await</span> <span class="syn-fn">call_next</span>(request)
-        duration_ms = (time.<span class="syn-fn">perf_counter</span>() - start) * <span class="syn-num">1000</span>
-
-        logger.<span class="syn-fn">info</span>(
-            <span class="syn-str">f"method=</span>{request.method} <span class="syn-str">path=</span>{request.url.path} "
-            <span class="syn-str">f"status=</span>{response.status_code} <span class="syn-str">duration=</span>{duration_ms:.1f}<span class="syn-str">ms"</span>
+        logger.info(
+            f"method={request.method} path={request.url.path} "
+            f"status={response.status_code} duration={duration_ms:.1f}ms"
         )
-        <span class="syn-kw">return</span> response</code></pre>
+        return response</code></pre>
+          </div>
+        </div>
 
         <hr class="section-rule" />
 
@@ -1753,7 +1705,7 @@ logger = logging.<span class="syn-fn">getLogger</span>(<span class="syn-str">"pe
         <h3>How a profiler works</h3>
 
         <p>
-          CPU profilers (like Go's built-in <code>pprof</code> or Python's
+          CPU profilers (like Java Flight Recorder or Python's
           <code>cProfile</code>) periodically interrupt the program and capture
           a snapshot of the current call stack. After thousands of samples, a
           statistical picture emerges showing which functions dominate execution
@@ -2035,40 +1987,63 @@ logger = logging.<span class="syn-fn">getLogger</span>(<span class="syn-str">"pe
           </div>
         </div>
 
-        <h3>CPU profiling in Go with pprof</h3>
+        <h3>CPU profiling with JFR</h3>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">import</span> (
-    <span class="syn-str">"net/http"</span>
-    _ <span class="syn-str">"net/http/pprof"</span>  <span class="syn-cm">// side-effect import: registers /debug/pprof/</span>
-)
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Java Flight Recorder ships inside the JDK. Nothing to add.
+//
+// Record for 30 seconds at startup:
+//   java -XX:StartFlightRecording=duration=30s,filename=cpu.jfr \
+//        -jar app.jar
+//
+// Or attach to a process that is already misbehaving:
+//   jcmd &lt;pid&gt; JFR.start duration=30s filename=cpu.jfr
+//
+// Open cpu.jfr in JDK Mission Control for the flame graph.
+// You can also drive a recording from code, which is useful in a
+// benchmark or a test that reproduces the slow path:
+final class CpuProfile {
 
-<span class="syn-kw">func</span> <span class="syn-fn">main</span>() {
-    <span class="syn-cm">// Your normal app setup...</span>
-    <span class="syn-cm">// pprof endpoints are now accessible at /debug/pprof/</span>
-    <span class="syn-cm">// Collect a 30-second CPU profile:</span>
-    <span class="syn-cm">//   go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30</span>
-    <span class="syn-cm">//   (pprof) web   &lt;- opens flame graph in browser</span>
-    http.<span class="syn-fn">ListenAndServe</span>(<span class="syn-str">":6060"</span>, <span class="syn-kw">nil</span>)
+    static void record(Path out, Duration window) throws Exception {
+        Configuration profile = Configuration.getConfiguration("profile");
+        try (Recording recording = new Recording(profile)) {
+            recording.setDestination(out);
+            recording.start();
+            Thread.sleep(window.toMillis());
+            recording.stop();          // writes the file on stop
+        }
+    }
 }</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">import cProfile
+import pstats
 
-        <h3>CPU profiling in Python</h3>
+# Profile a function and print the top 20 slowest calls
+with cProfile.Profile() as pr:
+    handle_request()  # your function under test
 
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-kw">import</span> cProfile
-<span class="syn-kw">import</span> pstats
+stats = pstats.Stats(pr)
+stats.sort_stats("cumulative")
+stats.print_stats(20)
 
-<span class="syn-cm"># Profile a function and print the top 20 slowest calls</span>
-<span class="syn-kw">with</span> cProfile.<span class="syn-fn">Profile</span>() <span class="syn-kw">as</span> pr:
-    <span class="syn-fn">handle_request</span>()  <span class="syn-cm"># your function under test</span>
-
-stats = pstats.<span class="syn-fn">Stats</span>(pr)
-stats.<span class="syn-fn">sort_stats</span>(<span class="syn-str">"cumulative"</span>)
-stats.<span class="syn-fn">print_stats</span>(<span class="syn-num">20</span>)
-
-<span class="syn-cm"># For flame graphs, use py-spy (external tool):</span>
-<span class="syn-cm">#   pip install py-spy</span>
-<span class="syn-cm">#   py-spy record -o profile.svg -- python app.py</span></code></pre>
+# For flame graphs, use py-spy (external tool):
+#   pip install py-spy
+#   py-spy record -o profile.svg -- python app.py</code></pre>
+          </div>
+        </div>
 
         <h3>CPU-bound vs I/O-bound bottlenecks</h3>
 
@@ -2368,7 +2343,7 @@ stats.<span class="syn-fn">print_stats</span>(<span class="syn-num">20</span>)
           Popular tracing tools include <strong>Jaeger</strong>,
           <strong>Zipkin</strong>, and <strong>OpenTelemetry</strong> (the
           emerging standard that unifies tracing, metrics, and logging).
-          OpenTelemetry provides SDKs for Go, Python, Java, and most major
+          OpenTelemetry provides SDKs for Java, Python, and most major
           languages.
         </p>
 
@@ -2621,59 +2596,72 @@ stats.<span class="syn-fn">print_stats</span>(<span class="syn-num">20</span>)
           the list, one for the related data.
         </p>
 
-        <h4>Go: solving N+1 with a batch query</h4>
+        <h4>Solving N+1 with a batch query</h4>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">func</span> <span class="syn-fn">GetPostsWithAuthors</span>(ctx <span class="syn-type">context.Context</span>, db *<span class="syn-type">sql.DB</span>) ([]<span class="syn-type">PostWithAuthor</span>, <span class="syn-type">error</span>) {
-    <span class="syn-cm">// Query 1: fetch all posts</span>
-    posts, err := <span class="syn-fn">queryPosts</span>(ctx, db)
-    <span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
-        <span class="syn-kw">return</span> <span class="syn-kw">nil</span>, err
-    }
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">@Service
+class PostFeed {
 
-    <span class="syn-cm">// Collect unique author IDs</span>
-    authorIDSet := <span class="syn-builtin">make</span>(<span class="syn-kw">map</span>[<span class="syn-type">int64</span>]<span class="syn-kw">struct</span>{})
-    <span class="syn-kw">for</span> _, p := <span class="syn-kw">range</span> posts {
-        authorIDSet[p.AuthorID] = <span class="syn-kw">struct</span>{}{}
-    }
-    authorIDs := <span class="syn-builtin">make</span>([]<span class="syn-type">int64</span>, <span class="syn-num">0</span>, <span class="syn-builtin">len</span>(authorIDSet))
-    <span class="syn-kw">for</span> id := <span class="syn-kw">range</span> authorIDSet {
-        authorIDs = <span class="syn-builtin">append</span>(authorIDs, id)
-    }
+    private final PostRepository posts;
+    private final AuthorRepository authors;
 
-    <span class="syn-cm">// Query 2: fetch ALL authors in one batch</span>
-    authors, err := <span class="syn-fn">queryAuthorsByIDs</span>(ctx, db, authorIDs)
-    <span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
-        <span class="syn-kw">return</span> <span class="syn-kw">nil</span>, err
-    }
-
-    <span class="syn-cm">// Build lookup map and merge</span>
-    authorMap := <span class="syn-builtin">make</span>(<span class="syn-kw">map</span>[<span class="syn-type">int64</span>]<span class="syn-type">Author</span>)
-    <span class="syn-kw">for</span> _, a := <span class="syn-kw">range</span> authors {
-        authorMap[a.ID] = a
+    PostFeed(PostRepository posts, AuthorRepository authors) {
+        this.posts = posts;
+        this.authors = authors;
     }
 
-    result := <span class="syn-builtin">make</span>([]<span class="syn-type">PostWithAuthor</span>, len(posts))
-    <span class="syn-kw">for</span> i, p := <span class="syn-kw">range</span> posts {
-        result[i] = <span class="syn-type">PostWithAuthor</span>{Post: p, Author: authorMap[p.AuthorID]}
+    List&lt;PostWithAuthor&gt; feed() {
+        // Query 1: the posts.
+        List&lt;Post&gt; found = posts.findAll();
+
+        // Query 2: every author at once, not one lookup per post.
+        Set&lt;Long&gt; authorIds = found.stream()
+                .map(Post::authorId)
+                .collect(Collectors.toSet());
+
+        Map&lt;Long, Author&gt; byId = authors.findAllById(authorIds).stream()
+                .collect(Collectors.toMap(Author::id, author -&gt; author));
+
+        return found.stream()
+                .map(post -&gt; new PostWithAuthor(post, byId.get(post.authorId())))
+                .toList();
     }
-    <span class="syn-kw">return</span> result, <span class="syn-kw">nil</span>
+}
+
+// With JPA you usually do not write the merge at all. The N+1 comes
+// from lazy-loading each association one row at a time, so tell the
+// query to fetch it in the SAME round-trip:
+interface PostRepository extends JpaRepository&lt;Post, Long&gt; {
+
+    @EntityGraph(attributePaths = "author")
+    List&lt;Post&gt; findAll();
 }</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python"># BAD, N+1 queries (Django ORM)
+posts = Post.objects.all()
+for post in posts:
+    print(post.author.name)  # Each access fires a separate query!
 
-        <h4>Python (Django): select_related &amp; prefetch_related</h4>
+# GOOD, 1 query with JOIN (ForeignKey)
+posts = Post.objects.select_related("author").all()
 
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-cm"># BAD, N+1 queries (Django ORM)</span>
-posts = Post.objects.<span class="syn-fn">all</span>()
-<span class="syn-kw">for</span> post <span class="syn-kw">in</span> posts:
-    <span class="syn-builtin">print</span>(post.author.name)  <span class="syn-cm"># Each access fires a separate query!</span>
-
-<span class="syn-cm"># GOOD, 1 query with JOIN (ForeignKey)</span>
-posts = Post.objects.<span class="syn-fn">select_related</span>(<span class="syn-str">"author"</span>).<span class="syn-fn">all</span>()
-
-<span class="syn-cm"># GOOD, 2 queries (ManyToMany or reverse FK)</span>
-posts = Post.objects.<span class="syn-fn">prefetch_related</span>(<span class="syn-str">"tags"</span>).<span class="syn-fn">all</span>()
-</code></pre>
+# GOOD, 2 queries (ManyToMany or reverse FK)
+posts = Post.objects.prefetch_related("tags").all()</code></pre>
+          </div>
+        </div>
 
         <p>
           Every modern ORM provides bulk-fetch primitives: Django has
@@ -2690,8 +2678,9 @@ posts = Post.objects.<span class="syn-fn">prefetch_related</span>(<span class="s
             Most modern ORMs have a "print generated SQL" mode. Enable it during
             development to catch N+1 patterns before they reach production. In
             Django: <code>settings.LOGGING</code> with the
-            <code>django.db.backends</code> logger. In Go's GORM:
-            <code>db.Debug()</code>.
+            <code>django.db.backends</code> logger. In Spring: set
+            <code>spring.jpa.show-sql</code>, or put the
+            <code>org.hibernate.SQL</code> logger at <code>DEBUG</code>.
           </p>
         </div>
 
@@ -2741,18 +2730,25 @@ posts = Post.objects.<span class="syn-fn">prefetch_related</span>(<span class="s
 
         <h3>Creating indexes</h3>
 
-        <pre><code><span class="code-label">SQL</span>
-<span class="syn-cm">-- Basic single-column index</span>
-<span class="syn-kw">CREATE INDEX</span> idx_posts_author_id <span class="syn-kw">ON</span> posts (author_id);
+        <div class="codeblock single">
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-sql"></span> indexes.sql</span
+            >
+          </div>
+          <pre><code class="language-sql">-- Basic single-column index
+CREATE INDEX idx_posts_author_id ON posts (author_id);
 
-<span class="syn-cm">-- Composite index: order matters!</span>
-<span class="syn-cm">-- This helps queries filtering by user_id, or user_id + created_at</span>
-<span class="syn-cm">-- It does NOT help queries filtering ONLY by created_at</span>
-<span class="syn-kw">CREATE INDEX</span> idx_orders_user_created <span class="syn-kw">ON</span> orders (user_id, created_at);
+-- Composite index: order matters!
+-- This helps queries filtering by user_id, or user_id + created_at
+-- It does NOT help queries filtering ONLY by created_at
+CREATE INDEX idx_orders_user_created ON orders (user_id, created_at);
 
-<span class="syn-cm">-- Covering index: all needed data lives IN the index</span>
-<span class="syn-cm">-- The query never touches the main table at all</span>
-<span class="syn-kw">CREATE INDEX</span> idx_departments_name <span class="syn-kw">ON</span> departments (name) <span class="syn-kw">INCLUDE</span> (id);</code></pre>
+-- Covering index: all needed data lives IN the index
+-- The query never touches the main table at all
+CREATE INDEX idx_departments_name ON departments (name) INCLUDE (id);</code></pre>
+        </div>
 
         <h3>Composite vs. Covering indexes</h3>
 
@@ -2810,17 +2806,24 @@ posts = Post.objects.<span class="syn-fn">prefetch_related</span>(<span class="s
           used, and how long each step took.
         </p>
 
-        <pre><code><span class="code-label">SQL</span>
-<span class="syn-kw">EXPLAIN ANALYZE</span>
-<span class="syn-kw">SELECT</span> p.*, u.name <span class="syn-kw">AS</span> author_name
-<span class="syn-kw">FROM</span> posts p
-<span class="syn-kw">JOIN</span> users u <span class="syn-kw">ON</span> u.id = p.author_id
-<span class="syn-kw">WHERE</span> p.published = <span class="syn-kw">true</span>
-<span class="syn-kw">ORDER BY</span> p.created_at <span class="syn-kw">DESC</span>
-<span class="syn-kw">LIMIT</span> <span class="syn-num">20</span>;
+        <div class="codeblock single">
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-sql"></span> explain-analyze.sql</span
+            >
+          </div>
+          <pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT p.*, u.name AS author_name
+FROM posts p
+JOIN users u ON u.id = p.author_id
+WHERE p.published = true
+ORDER BY p.created_at DESC
+LIMIT 20;
 
-<span class="syn-cm">-- Look for "Seq Scan" in the output, that means no index is being used.</span>
-<span class="syn-cm">-- After adding an index, re-run and confirm it shows "Index Scan".</span></code></pre>
+-- Look for "Seq Scan" in the output, that means no index is being used.
+-- After adding an index, re-run and confirm it shows "Index Scan".</code></pre>
+        </div>
 
         <div class="ref-box">
           <span
@@ -3175,35 +3178,63 @@ posts = Post.objects.<span class="syn-fn">prefetch_related</span>(<span class="s
           </div>
         </div>
 
-        <h4>Connection pooling in Go</h4>
+        <h4>Configuring the pool</h4>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">import</span> <span class="syn-str">"database/sql"</span>
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">// Spring Boot already pools connections with HikariCP. Most of the
+// time you tune it in application.yaml rather than in Java:
+//
+//   spring.datasource.hikari:
+//     maximum-pool-size: 25    # never open more than this
+//     minimum-idle: 10         # keep this many ready to go
+//     max-lifetime: 300000     # recycle a connection after 5 min
+//     idle-timeout: 60000      # drop an idle one after 1 min
+//
+// Build it yourself only when the values are not static:
+@Configuration
+class PoolConfig {
 
-db, err := sql.<span class="syn-fn">Open</span>(<span class="syn-str">"postgres"</span>, connStr)
-<span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
-    log.<span class="syn-fn">Fatal</span>(err)
-}
+    @Bean
+    DataSource dataSource(DataSourceProperties props) {
+        HikariConfig cfg = new HikariConfig();
+        cfg.setJdbcUrl(props.getUrl());
+        cfg.setUsername(props.getUsername());
+        cfg.setPassword(props.getPassword());
 
-<span class="syn-cm">// Configure the built-in connection pool</span>
-db.<span class="syn-fn">SetMaxOpenConns</span>(<span class="syn-num">25</span>)                  <span class="syn-cm">// max open connections to the DB</span>
-db.<span class="syn-fn">SetMaxIdleConns</span>(<span class="syn-num">10</span>)                  <span class="syn-cm">// max idle connections kept ready</span>
-db.<span class="syn-fn">SetConnMaxLifetime</span>(<span class="syn-num">5</span> * time.Minute)  <span class="syn-cm">// recycle connections after 5 min</span>
-db.<span class="syn-fn">SetConnMaxIdleTime</span>(<span class="syn-num">1</span> * time.Minute)  <span class="syn-cm">// close idle connections after 1 min</span></code></pre>
+        cfg.setMaximumPoolSize(25);
+        cfg.setMinimumIdle(10);
+        cfg.setMaxLifetime(Duration.ofMinutes(5).toMillis());
+        cfg.setIdleTimeout(Duration.ofMinutes(1).toMillis());
 
-        <h4>Connection pooling in Python (SQLAlchemy)</h4>
+        return new HikariDataSource(cfg);
+    }
+}</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">from sqlalchemy import create_engine
 
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-kw">from</span> sqlalchemy <span class="syn-kw">import</span> create_engine
-
-engine = <span class="syn-fn">create_engine</span>(
-    <span class="syn-str">"postgresql://user:pass@host/db"</span>,
-    pool_size=<span class="syn-num">20</span>,          <span class="syn-cm"># number of persistent connections</span>
-    max_overflow=<span class="syn-num">10</span>,       <span class="syn-cm"># extra connections allowed during spikes</span>
-    pool_timeout=<span class="syn-num">30</span>,       <span class="syn-cm"># seconds to wait for a free connection</span>
-    pool_recycle=<span class="syn-num">1800</span>,     <span class="syn-cm"># recycle connections every 30 minutes</span>
-    pool_pre_ping=<span class="syn-kw">True</span>,    <span class="syn-cm"># test connection health before use</span>
+engine = create_engine(
+    "postgresql://user:pass@host/db",
+    pool_size=20,          # number of persistent connections
+    max_overflow=10,       # extra connections allowed during spikes
+    pool_timeout=30,       # seconds to wait for a free connection
+    pool_recycle=1800,     # recycle connections every 30 minutes
+    pool_pre_ping=True,    # test connection health before use
 )</code></pre>
+          </div>
+        </div>
 
         <div class="ref-box">
           <span
@@ -3275,63 +3306,87 @@ engine = <span class="syn-fn">create_engine</span>(
           milliseconds), and only hits the database on a full miss.
         </p>
 
-        <h4>Simple Redis caching in Go</h4>
+        <h4>Caching in two layers</h4>
 
-        <pre><code><span class="code-label">Go</span>
-<span class="syn-kw">import</span> (
-    <span class="syn-str">"context"</span>
-    <span class="syn-str">"encoding/json"</span>
-    <span class="syn-str">"time"</span>
-    <span class="syn-str">"github.com/redis/go-redis/v9"</span>
-)
+        <div class="codeblock" data-cb>
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs">
+              <button class="on" data-lang="java">
+                <span class="lang-dot lang-java"></span> Java
+              </button>
+              <button data-lang="py">
+                <span class="lang-dot lang-py"></span> Python
+              </button>
+            </div>
+          </div>
+          <div class="code-panel on" data-panel="java">
+            <pre><code class="language-java">@Service
+class ProductService {
 
-<span class="syn-kw">var</span> rdb = redis.<span class="syn-fn">NewClient</span>(&redis.Options{Addr: <span class="syn-str">"localhost:6379"</span>})
+    private final ProductRepository products;
+    private final StringRedisTemplate redis;
+    private final ObjectMapper json;
 
-<span class="syn-kw">func</span> <span class="syn-fn">GetProduct</span>(ctx <span class="syn-type">context.Context</span>, id <span class="syn-type">string</span>) (*<span class="syn-type">Product</span>, <span class="syn-type">error</span>) {
-    cacheKey := <span class="syn-str">"product:"</span> + id
+    // L1: in this process. Microseconds, but every instance has its
+    // own copy, so keep the TTL short enough to tolerate the drift.
+    private final Cache&lt;String, Product&gt; local = Caffeine.newBuilder()
+            .maximumSize(10_000)
+            .expireAfterWrite(Duration.ofSeconds(30))
+            .build();
 
-    <span class="syn-cm">// 1. Try cache first</span>
-    cached, err := rdb.<span class="syn-fn">Get</span>(ctx, cacheKey).<span class="syn-fn">Result</span>()
-    <span class="syn-kw">if</span> err == <span class="syn-kw">nil</span> {
-        <span class="syn-kw">var</span> p <span class="syn-type">Product</span>
-        json.<span class="syn-fn">Unmarshal</span>([]<span class="syn-kw">byte</span>(cached), &p)
-        <span class="syn-kw">return</span> &p, <span class="syn-kw">nil</span>  <span class="syn-cm">// Cache HIT, ~2ms</span>
+    ProductService(ProductRepository products, StringRedisTemplate redis,
+                   ObjectMapper json) {
+        this.products = products;
+        this.redis = redis;
+        this.json = json;
     }
 
-    <span class="syn-cm">// 2. Cache miss, query database</span>
-    p, err := <span class="syn-fn">queryProductFromDB</span>(ctx, id)
-    <span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
-        <span class="syn-kw">return</span> <span class="syn-kw">nil</span>, err
+    Product find(String id) throws Exception {
+        Product hit = local.getIfPresent(id);
+        if (hit != null) {
+            return hit;                          // L1 hit, ~0.001ms
+        }
+
+        // L2: shared by every instance. Survives a redeploy.
+        String key = "product:" + id;
+        String cached = redis.opsForValue().get(key);
+        if (cached != null) {
+            Product p = json.readValue(cached, Product.class);
+            local.put(id, p);
+            return p;                            // L2 hit, ~2ms
+        }
+
+        // Miss on both. Pay for the database once, then fill both.
+        Product p = products.findById(id).orElseThrow();
+        redis.opsForValue().set(key, json.writeValueAsString(p),
+                Duration.ofMinutes(10));
+        local.put(id, p);
+        return p;
     }
-
-    <span class="syn-cm">// 3. Store in cache with TTL</span>
-    data, _ := json.<span class="syn-fn">Marshal</span>(p)
-    rdb.<span class="syn-fn">Set</span>(ctx, cacheKey, data, <span class="syn-num">10</span>*time.Minute)
-
-    <span class="syn-kw">return</span> p, <span class="syn-kw">nil</span>
 }</code></pre>
+          </div>
+          <div class="code-panel" data-panel="py">
+            <pre><code class="language-python">import json, redis
 
-        <h4>Simple Redis caching in Python</h4>
+r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
-        <pre><code><span class="code-label">Python</span>
-<span class="syn-kw">import</span> json, redis
+def get_product(product_id: str) -&gt; dict:
+    cache_key = f"product:{product_id}"
 
-r = redis.<span class="syn-fn">Redis</span>(host=<span class="syn-str">"localhost"</span>, port=<span class="syn-num">6379</span>, decode_responses=<span class="syn-kw">True</span>)
+    # 1. Try cache
+    cached = r.get(cache_key)
+    if cached:
+        return json.loads(cached)  # Cache HIT
 
-<span class="syn-kw">def</span> <span class="syn-fn">get_product</span>(product_id: <span class="syn-type">str</span>) -> <span class="syn-type">dict</span>:
-    cache_key = <span class="syn-str">f"product:</span>{product_id}<span class="syn-str">"</span>
+    # 2. Cache miss, query database
+    product = query_product_from_db(product_id)
 
-    <span class="syn-cm"># 1. Try cache</span>
-    cached = r.<span class="syn-fn">get</span>(cache_key)
-    <span class="syn-kw">if</span> cached:
-        <span class="syn-kw">return</span> json.<span class="syn-fn">loads</span>(cached)  <span class="syn-cm"># Cache HIT</span>
-
-    <span class="syn-cm"># 2. Cache miss, query database</span>
-    product = <span class="syn-fn">query_product_from_db</span>(product_id)
-
-    <span class="syn-cm"># 3. Store with 10-minute TTL</span>
-    r.<span class="syn-fn">setex</span>(cache_key, <span class="syn-num">600</span>, json.<span class="syn-fn">dumps</span>(product))
-    <span class="syn-kw">return</span> product</code></pre>
+    # 3. Store with 10-minute TTL
+    r.setex(cache_key, 600, json.dumps(product))
+    return product</code></pre>
+          </div>
+        </div>
 
         <hr class="section-rule" />
 
@@ -4173,27 +4228,34 @@ r = redis.<span class="syn-fn">Redis</span>(host=<span class="syn-str">"localhos
 
         <h3>Load balancer in practice (Nginx config)</h3>
 
-        <pre><code><span class="code-label">Nginx</span>
-<span class="syn-kw">upstream</span> backend {
-    <span class="syn-cm"># Least connections algorithm</span>
-    <span class="syn-kw">least_conn</span>;
+        <div class="codeblock single">
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-bash"></span> nginx.conf</span
+            >
+          </div>
+          <pre><code class="language-bash">upstream backend {
+    # Least connections algorithm
+    least_conn;
 
-    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.10:8080</span> <span class="syn-kw">weight</span>=<span class="syn-num">3</span>;   <span class="syn-cm"># stronger machine</span>
-    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.11:8080</span> <span class="syn-kw">weight</span>=<span class="syn-num">2</span>;
-    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.12:8080</span> <span class="syn-kw">weight</span>=<span class="syn-num">2</span>;
-    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.13:8080</span> <span class="syn-kw">backup</span>;     <span class="syn-cm"># only used if others are down</span>
+    server 10.0.1.10:8080 weight=3;   # stronger machine
+    server 10.0.1.11:8080 weight=2;
+    server 10.0.1.12:8080 weight=2;
+    server 10.0.1.13:8080 backup;     # only used if others are down
 }
 
-<span class="syn-kw">server</span> {
-    <span class="syn-kw">listen</span> <span class="syn-num">443</span> ssl;
-    <span class="syn-kw">server_name</span> api.example.com;
+server {
+    listen 443 ssl;
+    server_name api.example.com;
 
-    <span class="syn-kw">location</span> / {
-        <span class="syn-kw">proxy_pass</span> http://backend;
-        <span class="syn-kw">proxy_set_header</span> Host $host;
-        <span class="syn-kw">proxy_set_header</span> X-Real-IP $remote_addr;
+    location / {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 }</code></pre>
+        </div>
 
         <h3>Health checks</h3>
 
@@ -4205,24 +4267,43 @@ r = redis.<span class="syn-fn">Redis</span>(host=<span class="syn-str">"localhos
           the redundancy benefit of horizontal scaling.
         </p>
 
-        <h4>Simple health endpoint in Go</h4>
+        <h4>A health endpoint</h4>
 
-        <pre><code><span class="code-label">Go</span>
-http.<span class="syn-fn">HandleFunc</span>(<span class="syn-str">"/health"</span>, <span class="syn-kw">func</span>(w <span class="syn-type">http.ResponseWriter</span>, r *<span class="syn-type">http.Request</span>) {
-    <span class="syn-cm">// Check database connectivity</span>
-    <span class="syn-kw">if</span> err := db.<span class="syn-fn">PingContext</span>(r.<span class="syn-fn">Context</span>()); err != <span class="syn-kw">nil</span> {
-        w.<span class="syn-fn">WriteHeader</span>(http.StatusServiceUnavailable)
-        json.<span class="syn-fn">NewEncoder</span>(w).<span class="syn-fn">Encode</span>(<span class="syn-kw">map</span>[<span class="syn-type">string</span>]<span class="syn-type">string</span>{
-            <span class="syn-str">"status"</span>: <span class="syn-str">"unhealthy"</span>,
-            <span class="syn-str">"reason"</span>: <span class="syn-str">"database unreachable"</span>,
-        })
-        <span class="syn-kw">return</span>
+        <div class="codeblock single">
+          <div class="code-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="filename"
+              ><span class="lang-dot lang-java"></span>
+              QueueHealthIndicator.java</span
+            >
+          </div>
+          <pre><code class="language-java">// Actuator already serves /actuator/health, and the database check
+// comes with spring-boot-starter-data-jdbc. You add a check rather
+// than write the endpoint:
+@Component
+class QueueHealthIndicator implements HealthIndicator {
+
+    private final JdbcClient jdbc;
+
+    QueueHealthIndicator(JdbcClient jdbc) {
+        this.jdbc = jdbc;
     }
-    w.<span class="syn-fn">WriteHeader</span>(http.StatusOK)
-    json.<span class="syn-fn">NewEncoder</span>(w).<span class="syn-fn">Encode</span>(<span class="syn-kw">map</span>[<span class="syn-type">string</span>]<span class="syn-type">string</span>{
-        <span class="syn-str">"status"</span>: <span class="syn-str">"healthy"</span>,
-    })
-})</code></pre>
+
+    @Override
+    public Health health() {
+        try {
+            jdbc.sql("select 1").query(Integer.class).single();
+            return Health.up().build();
+        } catch (Exception e) {
+            // DOWN makes the whole endpoint return 503, which is what
+            // the load balancer is watching for.
+            return Health.down()
+                    .withDetail("reason", "database unreachable")
+                    .build();
+        }
+    }
+}</code></pre>
+        </div>
 
         <hr class="section-rule" />
 
@@ -4308,11 +4389,9 @@ http.<span class="syn-fn">HandleFunc</span>(<span class="syn-str">"/health"</spa
           </span>
         </div>
 
-        <a href="#top" class="back-to-top">^ Back to top</a>
-
         <footer class="bfp-footer">
-          System Design - Backend / Chapter 18 / Scaling. Code targets Go 1.22+
-          and Python 3.11+.
+          System Design - Backend / Chapter 18 / Scaling. Code targets Java 21,
+          Spring Boot 3.3 and Python 3.11+.
         </footer>
       </main>
     </div>
@@ -4370,5 +4449,8 @@ http.<span class="syn-fn">HandleFunc</span>(<span class="syn-str">"/health"</spa
     <script src="../../assets/copy-button.js"></script>
     <script src="../../assets/enhancements.js"></script>
     <script src="../../assets/shell.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
   </body>
 </html>

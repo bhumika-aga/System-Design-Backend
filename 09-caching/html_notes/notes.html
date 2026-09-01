@@ -15,36 +15,6 @@
       href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='21'%20font-family='Georgia,serif'%20font-size='13'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E"
     />
     <style>
-      :root {
-        --bg: #f3ede2;
-        --surface: #ece3d4;
-        --surface2: #e6dcca;
-        --ink: #211e1a;
-        --ink2: #5b5347;
-        --ink3: #8d8475;
-        --red: #b8402e;
-        --red-bg: #f4ded6;
-        --red-border: #e3c4b8;
-        --sidebar: #ece3d4;
-        --sidebar-text: #211e1a;
-        --sidebar-muted: #5b5347;
-        --sidebar-accent: #b8402e;
-        --code-bg: #232019;
-        --code-text: #e9e2d3;
-        --code-comment: #7d7468;
-        --code-keyword: #e0896a;
-        --code-string: #a9c98a;
-        --code-number: #7fb0c9;
-        --code-type: #d8b66a;
-        --border: #d8cfbe;
-        --accent-gold: #b07d2b;
-        --accent-gold-bg: #f0e5c9;
-        --teal: #3f6f4e;
-        --teal-bg: #e0e9dd;
-        --chapter-num: #b8402e;
-        --divider: #d8cfbe;
-      }
-
       * {
         box-sizing: border-box;
         margin: 0;
@@ -52,7 +22,7 @@
       }
 
       body {
-        background: var(--bg);
+        background: var(--paper);
         color: var(--ink);
         font-family: "Spline Sans", system-ui, sans-serif;
         font-size: 17px;
@@ -66,7 +36,7 @@
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 11px;
         letter-spacing: 0.18em;
-        color: var(--chapter-num);
+        color: var(--accent);
         text-transform: uppercase;
         margin-bottom: 0.75rem;
         display: flex;
@@ -78,7 +48,7 @@
         flex: 1;
         max-width: 60px;
         height: 1px;
-        background: var(--chapter-num);
+        background: var(--accent);
         opacity: 0.5;
       }
       .chapter-title {
@@ -93,14 +63,14 @@
       .chapter-subtitle {
         font-size: 19px;
         font-weight: 300;
-        color: var(--ink3);
+        color: var(--ink-faint);
         font-style: italic;
         margin-bottom: 2.5rem;
         max-width: 560px;
       }
       .chapter-divider {
         border: none;
-        border-top: 1px solid var(--divider);
+        border-top: 1px solid var(--line);
         margin: 2.5rem 0;
       }
 
@@ -108,10 +78,10 @@
       .section-num {
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 10px;
-        color: var(--red);
+        color: var(--accent);
         letter-spacing: 0.12em;
         display: inline-block;
-        background: var(--red-bg);
+        background: var(--tint-accent);
         padding: 3px 8px;
         border-radius: 3px;
         margin-bottom: 10px;
@@ -138,7 +108,7 @@
         font-family: "Spline Sans", system-ui, sans-serif;
         font-size: 16px;
         font-weight: 600;
-        color: var(--ink2);
+        color: var(--ink-soft);
         margin: 1.5rem 0 0.4rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -147,18 +117,18 @@
         margin-bottom: 1rem;
       }
       a {
-        color: var(--red);
+        color: var(--accent);
         text-decoration: none;
-        border-bottom: 1px solid var(--red-border);
+        border-bottom: 1px solid var(--tint-accent-line);
       }
       a:hover {
-        border-bottom-color: var(--red);
+        border-bottom-color: var(--accent);
       }
 
       /* -- CALLOUT BOXES -- */
       .callout {
-        border-left: 3px solid var(--red);
-        background: var(--red-bg);
+        border-left: 3px solid var(--accent);
+        background: var(--tint-accent);
         padding: 1rem 1.25rem;
         margin: 1.5rem 0;
         border-radius: 0 6px 6px 0;
@@ -167,27 +137,27 @@
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.15em;
-        color: var(--red);
+        color: var(--accent);
         text-transform: uppercase;
         margin-bottom: 6px;
       }
       .callout p {
         margin: 0;
         font-size: 15px;
-        color: var(--ink2);
+        color: var(--ink-soft);
       }
 
       .callout-gold {
-        border-left-color: var(--accent-gold);
-        background: var(--accent-gold-bg);
+        border-left-color: var(--gold);
+        background: var(--tint-gold);
       }
       .callout-gold .callout-label {
-        color: var(--accent-gold);
+        color: var(--gold);
       }
 
       .callout-teal {
         border-left-color: var(--teal);
-        background: var(--teal-bg);
+        background: var(--tint-green);
       }
       .callout-teal .callout-label {
         color: var(--teal);
@@ -197,8 +167,8 @@
       code {
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 13px;
-        background: var(--surface2);
-        color: var(--red);
+        background: var(--paper-3);
+        color: var(--accent);
         padding: 2px 6px;
         border-radius: 3px;
       }
@@ -219,14 +189,14 @@
         font-weight: 700;
         font-size: 18px;
         color: var(--ink);
-        border-bottom: 2px solid var(--red);
+        border-bottom: 2px solid var(--accent);
         display: inline;
       }
 
       /* -- DIAGRAM SVG CONTAINERS -- */
       .diagram-wrap {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--paper-2);
+        border: 1px solid var(--line);
         border-radius: 10px;
         padding: 1.5rem;
         margin: 1.75rem 0;
@@ -235,7 +205,7 @@
       .diagram-caption {
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 11px;
-        color: var(--ink3);
+        color: var(--ink-faint);
         margin-top: 0.75rem;
         text-align: center;
         letter-spacing: 0.05em;
@@ -249,8 +219,8 @@
         margin: 1.5rem 0;
       }
       .compare-table th {
-        background: var(--sidebar);
-        color: var(--sidebar-text);
+        background: var(--paper-2);
+        color: var(--ink);
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 11px;
         letter-spacing: 0.08em;
@@ -260,12 +230,12 @@
       }
       .compare-table td {
         padding: 9px 14px;
-        border-bottom: 1px solid var(--border);
-        color: var(--ink2);
+        border-bottom: 1px solid var(--line);
+        color: var(--ink-soft);
         vertical-align: top;
       }
       .compare-table tr:nth-child(even) td {
-        background: var(--surface);
+        background: var(--paper-2);
       }
       .compare-table tr:last-child td {
         border-bottom: none;
@@ -275,7 +245,7 @@
         font-weight: 600;
       }
       .tag-slow {
-        color: var(--red);
+        color: var(--accent);
         font-weight: 600;
       }
 
@@ -287,8 +257,8 @@
         margin: 1.5rem 0;
       }
       .strategy-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--paper-2);
+        border: 1px solid var(--line);
         border-radius: 8px;
         padding: 1.2rem 1.4rem;
       }
@@ -296,7 +266,7 @@
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.12em;
-        color: var(--ink3);
+        color: var(--ink-faint);
         text-transform: uppercase;
         margin-bottom: 4px;
       }
@@ -311,7 +281,7 @@
       }
       .strategy-card p {
         font-size: 14px;
-        color: var(--ink2);
+        color: var(--ink-soft);
         margin: 0;
       }
 
@@ -325,7 +295,7 @@
         gap: 14px;
         align-items: flex-start;
         padding: 12px 0;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--line);
       }
       .policy-list li:last-child {
         border-bottom: none;
@@ -342,20 +312,20 @@
         margin-top: 2px;
       }
       .badge-none {
-        background: var(--surface2);
-        color: var(--ink3);
+        background: var(--paper-3);
+        color: var(--ink-faint);
       }
       .badge-lru {
-        background: var(--teal-bg);
+        background: var(--tint-green);
         color: var(--teal);
       }
       .badge-lfu {
-        background: var(--accent-gold-bg);
-        color: var(--accent-gold);
+        background: var(--tint-gold);
+        color: var(--gold);
       }
       .badge-ttl {
-        background: var(--red-bg);
-        color: var(--red);
+        background: var(--tint-accent);
+        color: var(--accent);
       }
 
       /* -- USE-CASE TILES -- */
@@ -366,9 +336,9 @@
         margin: 1.5rem 0;
       }
       .usecase-tile {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-top: 3px solid var(--red);
+        background: var(--paper-2);
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--accent);
         border-radius: 0 0 8px 8px;
         padding: 1rem 1.2rem;
       }
@@ -383,14 +353,14 @@
       }
       .usecase-tile p {
         font-size: 13.5px;
-        color: var(--ink2);
+        color: var(--ink-soft);
         margin: 0;
       }
 
       /* -- REFERENCE LINKS -- */
       .ref-box {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: var(--paper-2);
+        border: 1px solid var(--line);
         border-radius: 8px;
         padding: 1rem 1.25rem;
         margin: 1rem 0;
@@ -399,7 +369,7 @@
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 10px;
         letter-spacing: 0.12em;
-        color: var(--ink3);
+        color: var(--ink-faint);
         text-transform: uppercase;
         margin-bottom: 8px;
       }
@@ -425,7 +395,7 @@
 
       /* -- INLINE TERM HIGHLIGHT -- */
       .term {
-        color: var(--red);
+        color: var(--accent);
         font-weight: 600;
         font-style: italic;
       }
@@ -470,7 +440,7 @@
         background: rgba(243, 237, 226, 0.88);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        border-top: 1.5px solid #c7bca6;
+        border-top: 1.5px solid var(--line-strong);
         box-shadow: 0 -8px 32px -16px rgba(40, 30, 20, 0.18);
         font-family: "JetBrains Mono", ui-monospace, monospace;
       }
@@ -479,7 +449,7 @@
         align-items: center;
         gap: 12px;
         text-decoration: none;
-        color: #5b5347;
+        color: var(--ink-soft);
         padding: 10px 18px;
         border-radius: 10px;
         transition: all 0.2s ease;
@@ -487,7 +457,7 @@
       }
       .nav-chapter-link:hover {
         background: rgba(184, 64, 46, 0.08);
-        color: #b8402e;
+        color: var(--accent);
         transform: translateY(-1px);
       }
       .nav-chapter-link.nav-next {
@@ -496,7 +466,7 @@
       }
       .nav-arrow {
         font-size: 22px;
-        color: #b8402e;
+        color: var(--accent);
         font-weight: 700;
         flex: none;
       }
@@ -511,39 +481,39 @@
         font-size: 10px;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: #8d8475;
+        color: var(--ink-faint);
         font-weight: 600;
       }
       .nav-indicator {
         font-size: 12px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: #b8402e;
+        color: var(--accent);
         font-weight: 700;
         text-decoration: none;
         padding: 8px 16px;
-        border: 1.5px solid #c7bca6;
+        border: 1.5px solid var(--line-strong);
         border-radius: 40px;
         background: rgba(255, 255, 255, 0.5);
         transition: all 0.2s;
         white-space: nowrap;
       }
       .nav-indicator:hover {
-        background: #b8402e;
+        background: var(--accent);
         color: #fff;
-        border-color: #b8402e;
+        border-color: var(--accent);
       }
       .nav-dot {
         display: inline-block;
         width: 7px;
         height: 7px;
-        background: #b8402e;
+        background: var(--accent);
         border-radius: 50%;
         margin-right: 4px;
         vertical-align: middle;
       }
       .nav-sep {
-        color: #c7bca6;
+        color: var(--line-strong);
         margin: 0 2px;
       }
       .nav-disabled {
@@ -763,7 +733,7 @@
             primary data. This is critical for two reasons:
           </p>
 
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 10px">
               <strong>Caching is more expensive than disk storage.</strong>
               Storing data in a cache (typically in RAM) costs significantly
@@ -792,7 +762,7 @@
             evaluate to decide what deserves to be in the cache:
           </p>
 
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 8px">
               <strong>Frequency of use</strong>: How often is this data
               accessed? Data accessed thousands of times per minute is a far
@@ -892,7 +862,7 @@
             complex algorithm and workflow. Every query goes through a pipeline
             that typically involves:
           </p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 8px">
               <strong>Crawling</strong>: Google's bots continuously crawl the
               web, discovering and downloading billions of pages
@@ -1183,7 +1153,7 @@
           </div>
 
           <p>Let's trace through both paths precisely:</p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 10px">
               <strong>Cache Hit</strong>: If the query has been searched before
               (say, "weather in Delhi" was searched 5 minutes ago by someone
@@ -1234,7 +1204,7 @@
               speeds</strong
             >. For a high level explanation, let's say it has:
           </p>
-          <ul style="margin: 0.5rem 0 0.75rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 0.75rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 4px">
               1080p, for fast internet and high-end devices
             </li>
@@ -1681,7 +1651,7 @@
             Key terms from this example, these are important vocabulary you'll
             use throughout your career:
           </p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 10px">
               <strong>CDN (Content Delivery Network)</strong>: A globally
               distributed network of servers that caches and delivers content
@@ -1772,7 +1742,7 @@
 
           <h4>Why This Computation is Expensive</h4>
           <p>This calculation is very expensive. It involves:</p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 8px">
               Machine learning-based algorithms for natural language processing,
               topic clustering, and trend detection
@@ -1848,7 +1818,7 @@
             After those three examples, you should now see the pattern clearly.
             Every time there is a situation where it's either about:
           </p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 8px">
               <strong>Doing a lot of heavy computation</strong>: like Google's
               ranking algorithms or Twitter's ML-based trend detection, you
@@ -2338,7 +2308,7 @@
           </div>
 
           <p>CDN routing decisions consider multiple parameters:</p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 6px">
               <strong>Geographic location of the user</strong>: find the nearest
               PoP
@@ -3166,7 +3136,7 @@
             tradeoff stated plainly. RAM is incredibly fast but:
           </p>
 
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 8px">
               <strong>It is volatile.</strong> Whenever you turn off the power,
               whatever data is stored in RAM, it goes away. It clears itself.
@@ -3349,7 +3319,7 @@
             Redis uses two primary mechanisms to ensure data isn't lost when the
             process restarts:
           </p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 10px">
               <strong>RDB (Redis Database) Snapshots</strong>: At configured
               intervals (e.g. every 5 minutes, or when N writes have occurred),
@@ -3663,7 +3633,7 @@
           </div>
 
           <p><strong>Characteristics of Lazy Caching:</strong></p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 6px">
               Cache is only populated when data is actually requested, no wasted
               pre-filling
@@ -3809,7 +3779,10 @@
                 the memory is now full. The database keeps track of when each
                 key was last accessed:
                 <ul
-                  style="margin: 0.5rem 0 0.75rem 1.75rem; color: var(--ink2)"
+                  style="
+                    margin: 0.5rem 0 0.75rem 1.75rem;
+                    color: var(--ink-soft);
+                  "
                 >
                   <li style="margin-bottom: 4px">Key 1, accessed today</li>
                   <li style="margin-bottom: 4px">Key 2, accessed today</li>
@@ -3841,7 +3814,10 @@
                 about time, let's say we have 4 keys and Key 5 wants to come in.
                 Each key has an access frequency counter:
                 <ul
-                  style="margin: 0.5rem 0 0.75rem 1.75rem; color: var(--ink2)"
+                  style="
+                    margin: 0.5rem 0 0.75rem 1.75rem;
+                    color: var(--ink-soft);
+                  "
                 >
                   <li style="margin-bottom: 4px">
                     Key 1, accessed <strong>5 times</strong> so far
@@ -3881,7 +3857,10 @@
                 <strong>Walk-through example:</strong> Same scenario, 4 keys,
                 Key 5 wants to enter, cache is full. Each key has a TTL:
                 <ul
-                  style="margin: 0.5rem 0 0.75rem 1.75rem; color: var(--ink2)"
+                  style="
+                    margin: 0.5rem 0 0.75rem 1.75rem;
+                    color: var(--ink-soft);
+                  "
                 >
                   <li style="margin-bottom: 4px">Key 1, expires in 3 hours</li>
                   <li style="margin-bottom: 4px">
@@ -4343,7 +4322,7 @@
             you end up making thousands of API calls to this external API.
             External APIs usually have:
           </p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 8px">
               <strong>Rate limits</strong>: e.g. 1000 requests per hour. Hit
               that limit and every subsequent request fails until the window
@@ -4416,7 +4395,7 @@
           </p>
 
           <p>The job of this middleware is:</p>
-          <ol style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ol style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 8px">
               Extract the <code>X-Forwarded-For</code> header from the incoming
               request to get the client's IP address
@@ -4441,7 +4420,7 @@
             Let's say the condition is: a particular client can only make 50
             requests in 1 minute. Then whenever a request comes:
           </p>
-          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink2)">
+          <ul style="margin: 0.5rem 0 1rem 1.5rem; color: var(--ink-soft)">
             <li style="margin-bottom: 6px">
               Request 1: check Redis for key
               <code>rate_limit:10.0.0.1:&lt;current_minute&gt;</code> -&gt; not
@@ -5147,7 +5126,7 @@ def delete_session(session_id: str):
             style="
               margin-top: 3rem;
               padding-top: 1.5rem;
-              border-top: 1px solid var(--divider);
+              border-top: 1px solid var(--line);
             "
           >
             <p
@@ -5155,7 +5134,7 @@ def delete_session(session_id: str):
                 font-family:
                   &quot;JetBrains Mono&quot;, ui-monospace, monospace;
                 font-size: 11px;
-                color: var(--ink3);
+                color: var(--ink-faint);
                 letter-spacing: 0.08em;
               "
             >

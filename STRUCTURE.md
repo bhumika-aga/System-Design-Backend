@@ -49,6 +49,37 @@ a feature.
 gap, everywhere. Do not restate it, and do not override it — two chapters once
 drifted to 15.5px and read visibly smaller than the rest.
 
+**Colours come from the shared tokens. Always.** Use `--ink`, `--ink-soft`,
+`--ink-faint`, `--paper`, `--paper-2`, `--paper-3`, `--line`, `--line-strong`,
+`--accent`, `--accent-2`, `--green`, `--blue`, `--gold`, and the tinted
+surfaces `--tint-accent`, `--tint-gold`, `--tint-green`, `--tint-blue`. They
+are defined once per theme: parchment and light in `assets/enhancements.css`,
+dark in `assets/theme.css`.
+
+Never declare a private palette in a chapter's inline `<style>`, and never
+write a raw hex for a colour that has a token. The theme files redefine only
+the shared names, so a chapter with its own `--text` or a literal `#211e1a`
+keeps its light colours when someone selects the dark theme. Eighteen chapters
+once did exactly that, and five of them rendered near-black text on a
+near-black page.
+
+A chapter's inline `:root` should now hold nothing but layout constants
+(`--sidebar-w`, `--content-max`). Check with:
+
+```bash
+# any colour declaration left in a chapter's own :root is a bug
+grep -o ':root[^}]*}' NN-*/html_notes/notes.html | grep -o '\-\-[a-z-]*: *#'
+```
+
+Check a change against every theme, not just the one you are looking at:
+
+```js
+// worst text contrast on the page, in the current theme
+[...document.querySelectorAll(".bfp-content p, .bfp-content li, .cell")].map(
+  (el) => getComputedStyle(el).color,
+); // compare against the backdrop
+```
+
 **Every TOC link must resolve.** `href="#sN"` needs a matching
 `<section id="sN">`. Numbered `sN` ids are the convention; a few older chapters
 use descriptive ids instead, which is fine as long as they resolve.

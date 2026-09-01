@@ -41,6 +41,14 @@
   --bfp-code-line: #3d332b;
   --bfp-code-ink: #f2e8dc;
   --bfp-code-faint: #a89781;
+
+  /* Tinted surfaces, dark equivalents of the parchment tints. */
+  --tint-accent: #2c1a14;
+  --tint-accent-line: #6b3428;
+  --tint-gold: #2e2718;
+  --tint-green: #1c2a20;
+  --tint-green-line: #3c5a45;
+  --tint-blue: #1c2830;
 }
 
 :root[data-theme="dark"] body {

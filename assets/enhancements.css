@@ -261,7 +261,7 @@
   /* Text & Ink */
   --ink: #211e1a;
   --ink-soft: #5b5347;
-  --ink-faint: #8d8475;
+  --ink-faint: #665e51;
 
   --accent: #b8402e;
   --accent-2: #8f2f20;
@@ -272,7 +272,7 @@
   --green: #3f6f4e;
   --teal: #3f6f4e;
   --blue: #37607f;
-  --gold: #b07d2b;
+  --gold: #8c621f;
 
   /* Dividers & Borders */
   --line: #d8cfbe;
@@ -319,6 +319,14 @@
   --bfp-code-line: var(--code-line);
   --bfp-code-ink: var(--code-ink);
   --bfp-code-faint: var(--code-faint);
+
+  /* Tinted surfaces, for callouts and diagram fills. */
+  --tint-accent: #f4ded6;
+  --tint-accent-line: #e3c4b8;
+  --tint-gold: #f0e5c9;
+  --tint-green: #e0e9dd;
+  --tint-green-line: #bcd3b6;
+  --tint-blue: #dee5ee;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -333,7 +341,7 @@
   /* Text & Ink */
   --ink: #000000;
   --ink-soft: #333333;
-  --ink-faint: #999999;
+  --ink-faint: #6e6e6e;
 
   /* Accents & Interactive */
   --accent: #0969da;
@@ -343,10 +351,10 @@
   --surface-card-hover: #f0f3f6;
   --rust: #0066cc;
   --rust-deep: #0052a3;
-  --green: #00b464;
-  --teal: #00b464;
+  --green: #087a46;
+  --teal: #087a46;
   --blue: #0066cc;
-  --gold: #ffb400;
+  --gold: #8a6100;
 
   /* Dividers & Borders */
   --line: #e0e0e0;
@@ -386,6 +394,14 @@
   --bfp-code-line: var(--code-line);
   --bfp-code-ink: var(--code-ink);
   --bfp-code-faint: var(--code-faint);
+
+  /* Tinted surfaces, tracking the light accent. */
+  --tint-accent: #eaf2fd;
+  --tint-accent-line: #c9def8;
+  --tint-gold: #fdf3d6;
+  --tint-green: #e4f4ea;
+  --tint-green-line: #bfe0cd;
+  --tint-blue: #eaf2fd;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

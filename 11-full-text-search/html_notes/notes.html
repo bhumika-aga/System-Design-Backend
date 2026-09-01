@@ -19,16 +19,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <style>
       :root {
-        --cream: #f3ede2;
-        --cream-dark: #ece3d4;
-        --ink: #211e1a;
-        --ink-light: #5b5347;
-        --red: #b8402e;
-        --red-dark: #8f2f20;
-        --gold: #b07d2b;
-        --border: #d8cfbe;
-        --code-bg: #232019;
-        --code-text: #e9e2d3;
         --sidebar-w: 280px;
       }
 
@@ -40,7 +30,7 @@
 
       body {
         font-family: "Spline Sans", system-ui, sans-serif;
-        background: var(--cream);
+        background: var(--paper);
         color: var(--ink);
 
         min-height: 100vh;
@@ -52,8 +42,8 @@
       aside {
         width: var(--sidebar-w);
         min-height: 100vh;
-        background: var(--cream-dark);
-        border-right: 1px solid var(--border);
+        background: var(--paper-2);
+        border-right: 1px solid var(--line);
         padding: 36px 20px 40px;
         position: sticky;
         top: 0;
@@ -74,7 +64,7 @@
         font-size: 11px;
         letter-spacing: 0.16em;
         text-transform: uppercase;
-        color: var(--red);
+        color: var(--accent);
         font-weight: 600;
         margin-bottom: 12px;
       }
@@ -88,10 +78,10 @@
       }
       .chapter-intro {
         font-size: 18px;
-        color: var(--ink-light);
+        color: var(--ink-soft);
         line-height: 1.8;
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
         padding: 20px 0;
         margin-bottom: 52px;
       }
@@ -110,7 +100,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: var(--red);
+        background: var(--accent);
         color: #fff;
         font-family: "Spline Sans", system-ui, sans-serif;
         font-weight: 700;
@@ -139,8 +129,8 @@
 
       /* -- CALLOUT BOXES -- */
       .callout {
-        background: var(--cream-dark);
-        border-left: 4px solid var(--red);
+        background: var(--paper-2);
+        border-left: 4px solid var(--accent);
         border-radius: 0 8px 8px 0;
         padding: 16px 20px;
         margin: 24px 0;
@@ -157,23 +147,23 @@
       .callout::before {
         content: "Note  ";
         font-weight: 700;
-        color: var(--red);
+        color: var(--accent);
       }
       .callout.warning {
-        border-color: #b07d2b;
+        border-color: var(--gold);
       }
       .callout.warning::before {
         content: "Watch out  ";
         font-weight: 700;
-        color: #b8402e;
+        color: var(--accent);
       }
 
       /* -- CODE BLOCKS -- */
       code {
         font-family: "JetBrains Mono", ui-monospace, monospace;
         font-size: 13px;
-        background: #e6dcca;
-        color: var(--red-dark);
+        background: var(--paper-3);
+        color: var(--accent-2);
         padding: 2px 6px;
         border-radius: 4px;
       }
@@ -189,17 +179,17 @@
 
       /* -- DIAGRAM SVG WRAPPER -- */
       .diagram-box {
-        border: 1px solid var(--border);
+        border: 1px solid var(--line);
         border-radius: 12px;
         overflow: hidden;
         margin: 28px 0;
-        background: var(--cream);
+        background: var(--paper);
       }
       .diagram-caption {
         text-align: center;
         font-family: "Spline Sans", system-ui, sans-serif;
         font-size: 12.5px;
-        color: var(--ink-light);
+        color: var(--ink-soft);
         padding: 8px 0 12px;
         letter-spacing: 0.04em;
       }
@@ -214,7 +204,7 @@
       }
       th {
         background: var(--ink);
-        color: var(--cream);
+        color: var(--paper);
         padding: 10px 14px;
         text-align: left;
         font-weight: 600;
@@ -224,10 +214,10 @@
       }
       td {
         padding: 10px 14px;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--line);
       }
       tr:nth-child(even) td {
-        background: var(--cream-dark);
+        background: var(--paper-2);
       }
 
       /* -- LIST STYLES -- */
@@ -240,13 +230,13 @@
         margin-bottom: 8px;
       }
       li strong {
-        color: var(--red-dark);
+        color: var(--accent-2);
       }
 
       /* -- DIVIDER -- */
       hr {
         border: none;
-        border-top: 1px solid var(--border);
+        border-top: 1px solid var(--line);
         margin: 48px 0;
       }
 
@@ -261,18 +251,18 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: var(--cream-dark);
-        border: 1px solid var(--border);
+        background: var(--paper-2);
+        border: 1px solid var(--line);
         border-radius: 6px;
         padding: 6px 12px;
         font-family: "Spline Sans", system-ui, sans-serif;
         font-size: 13px;
-        color: var(--red-dark);
+        color: var(--accent-2);
         text-decoration: none;
         transition: background 0.15s;
       }
       .ref-link:hover {
-        background: var(--border);
+        background: var(--line);
       }
 
       /* -- HIGHLIGHT QUOTE -- */
@@ -281,7 +271,7 @@
         margin: 24px 0;
         padding: 12px 20px;
         font-style: italic;
-        color: var(--ink-light);
+        color: var(--ink-soft);
         font-size: 17px;
       }
 
@@ -293,10 +283,10 @@
         margin: 24px 0;
       }
       .compare-card {
-        border: 1px solid var(--border);
+        border: 1px solid var(--line);
         border-radius: 10px;
         padding: 18px 20px;
-        background: var(--cream);
+        background: var(--paper);
       }
       .compare-card h4 {
         font-family: "Spline Sans", system-ui, sans-serif;
@@ -306,8 +296,8 @@
         letter-spacing: 0.1em;
         margin-bottom: 12px;
         padding-bottom: 8px;
-        border-bottom: 2px solid var(--red);
-        color: var(--red);
+        border-bottom: 2px solid var(--accent);
+        color: var(--accent);
       }
       .compare-card ul {
         margin: 0;
@@ -327,7 +317,7 @@
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: var(--border);
+        background: var(--line);
         border-radius: 3px;
       }
 
@@ -360,7 +350,7 @@
         background: rgba(243, 237, 226, 0.88);
         backdrop-filter: blur(18px);
         -webkit-backdrop-filter: blur(18px);
-        border-top: 1.5px solid #c7bca6;
+        border-top: 1.5px solid var(--line-strong);
         box-shadow: 0 -8px 32px -16px rgba(40, 30, 20, 0.18);
         font-family: "JetBrains Mono", ui-monospace, monospace;
       }
@@ -369,7 +359,7 @@
         align-items: center;
         gap: 12px;
         text-decoration: none;
-        color: #5b5347;
+        color: var(--ink-soft);
         padding: 10px 18px;
         border-radius: 10px;
         transition: all 0.2s ease;
@@ -377,7 +367,7 @@
       }
       .nav-chapter-link:hover {
         background: rgba(184, 64, 46, 0.08);
-        color: #b8402e;
+        color: var(--accent);
         transform: translateY(-1px);
       }
       .nav-chapter-link.nav-next {
@@ -386,7 +376,7 @@
       }
       .nav-arrow {
         font-size: 22px;
-        color: #b8402e;
+        color: var(--accent);
         font-weight: 700;
         flex: none;
       }
@@ -401,39 +391,39 @@
         font-size: 10px;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: #8d8475;
+        color: var(--ink-faint);
         font-weight: 600;
       }
       .nav-indicator {
         font-size: 12px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: #b8402e;
+        color: var(--accent);
         font-weight: 700;
         text-decoration: none;
         padding: 8px 16px;
-        border: 1.5px solid #c7bca6;
+        border: 1.5px solid var(--line-strong);
         border-radius: 40px;
         background: rgba(255, 255, 255, 0.5);
         transition: all 0.2s;
         white-space: nowrap;
       }
       .nav-indicator:hover {
-        background: #b8402e;
+        background: var(--accent);
         color: #fff;
-        border-color: #b8402e;
+        border-color: var(--accent);
       }
       .nav-dot {
         display: inline-block;
         width: 7px;
         height: 7px;
-        background: #b8402e;
+        background: var(--accent);
         border-radius: 50%;
         margin-right: 4px;
         vertical-align: middle;
       }
       .nav-sep {
-        color: #c7bca6;
+        color: var(--line-strong);
         margin: 0 2px;
       }
       .nav-disabled {
@@ -2996,7 +2986,7 @@ export async function GET(req) {
             text-align: center;
             font-family: &quot;Spline Sans&quot;, system-ui, sans-serif;
             font-size: 13px;
-            color: var(--ink-light);
+            color: var(--ink-soft);
           "
         >
           Backend Field Manual / Full-Text Search Chapter / Notes compiled from

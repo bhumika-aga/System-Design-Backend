@@ -211,3 +211,17 @@
 :root[data-theme="light"] .codeblock .hljs-params {
   color: #953800;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   COMMENT CONTRAST (dark code panel)
+   The bundled highlight.js theme renders comments at #5c6370, which is
+   only ~3.3:1 on the panel background — below WCAG AA. These chapters
+   teach through their comments, so lift them to ~5.5:1 while keeping
+   them visibly quieter than the surrounding code.
+   The light theme sets its own comment colour above and is excluded.
+   ───────────────────────────────────────────────────────────────────────── */
+:root:not([data-theme="light"]) .codeblock .hljs-comment,
+:root:not([data-theme="light"]) .codeblock .hljs-quote,
+:root:not([data-theme="light"]) .codeblock .hljs-deletion {
+  color: #7f8899;
+}

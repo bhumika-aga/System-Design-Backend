@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }  # full history for secret scanning
+        with: { fetch-depth: 0 } # full history for secret scanning
 
       # Scan for hardcoded secrets in entire git history
       - name: Gitleaks

@@ -2,7 +2,6 @@
 groups:
   - name: api_health
     rules:
-
       # P1 ,  Error rate critical
       - alert: HighErrorRate
         expr: |
@@ -12,7 +11,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "HTTP error rate above 5% ({{ $value | printf \"%.1f\" }}%)"
+          summary: 'HTTP error rate above 5% ({{ $value | printf "%.1f" }}%)'
           runbook: "https://wiki.company.com/runbooks/high-error-rate"
 
       # P2 ,  High latency
@@ -25,7 +24,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "P99 latency above 2s ({{ $value | printf \"%.2f\" }}s)"
+          summary: 'P99 latency above 2s ({{ $value | printf "%.2f" }}s)'
 
       # P2 ,  DB connection pool near exhaustion
       - alert: DBConnectionPoolExhaustion

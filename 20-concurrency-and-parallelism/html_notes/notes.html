@@ -178,40 +178,7 @@
         font-size: 0.8rem;
       }
 
-      .code-label {
-        position: absolute;
-        top: 0.6rem;
-        right: 0.8rem;
-        font-family: "JetBrains Mono", ui-monospace, monospace;
-        font-size: 0.6rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--code-faint);
-        background: rgba(255, 255, 255, 0.06);
-        padding: 0.15rem 0.5rem;
-        border-radius: 3px;
-      }
-
-      /* syntax colors inside pre */
-      .kw {
-        color: #e0896a;
-      } /* keywords */
-      .fn {
-        color: #7fb0c9;
-      } /* functions */
-      .str {
-        color: #a9c98a;
-      } /* strings */
-      .cm {
-        color: #7d7468;
-        font-style: italic;
-      } /* comments */
-      .num {
-        color: #d8b66a;
-      } /* numbers */
-      .type {
-        color: #c58fb0;
-      } /* types */
+      /* syntax colors inside pre */ /* keywords */ /* functions */ /* strings */ /* comments */ /* numbers */ /* types */
       .op {
         color: var(--line);
       } /* operators */
@@ -480,6 +447,11 @@
       }
     </style>
     <link rel="stylesheet" href="../../assets/copy-button.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="../../assets/code-card.css" />
     <link rel="stylesheet" href="../../assets/enhancements.css" />
     <link rel="stylesheet" href="../../assets/shell.css" />
@@ -559,9 +531,7 @@
           >
           <a class="bfp-toc-link" href="#s09"
             ><span class="bfp-toc-num">09</span
-            ><span class="bfp-toc-text"
-              >Go Routines &amp; Virtual Threads</span
-            ></a
+            ><span class="bfp-toc-text">Virtual Threads</span></a
           >
           <a class="bfp-toc-link" href="#s10"
             ><span class="bfp-toc-num">10</span
@@ -575,7 +545,7 @@
           >
           <a class="bfp-toc-link" href="#s12"
             ><span class="bfp-toc-num">12</span
-            ><span class="bfp-toc-text">Locks, Mutexes &amp; Channels</span></a
+            ><span class="bfp-toc-text">Locks, Mutexes &amp; Queues</span></a
           >
           <a class="bfp-toc-link" href="#s13"
             ><span class="bfp-toc-num">13</span
@@ -599,9 +569,9 @@
           wait, and that simply doesn't work in production. This guide builds
           the complete mental model from the ground up, from raw CPU cycles and
           IO operations, through OS threads and event loops, to modern
-          concurrency primitives like goroutines and <code>async/await</code>.
-          Everything is grounded in practical backend code using
-          <strong>Go</strong> and <strong>Python</strong>.
+          concurrency primitives like virtual threads and
+          <code>async/await</code>. Everything is grounded in practical backend
+          code using <strong>Java</strong> and <strong>Python</strong>.
         </p>
 
         <hr />
@@ -1789,29 +1759,38 @@
 
           <h3>Thread-per-request in Python</h3>
 
-          <pre><code><span class="cm"># Python, threading model (simplified)</span>
-<span class="kw">import</span> threading
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-py"></span>
+                thread_per_request.py</span
+              >
+            </div>
+            <pre><code class="language-python"># Python, threading model (simplified)
+import threading
 
-<span class="kw">def</span> <span class="fn">handle_request</span>(conn):
-    <span class="cm"># 1. Parse the HTTP request (CPU work)</span>
+def handle_request(conn):
+    # 1. Parse the HTTP request (CPU work)
     request = parse_http(conn)
 
-    <span class="cm"># 2. Database query, this BLOCKS the thread</span>
-    <span class="cm">#    The OS scheduler will switch to another thread</span>
+    # 2. Database query, this BLOCKS the thread
+    #    The OS scheduler will switch to another thread
     user = db.execute(
-        <span class="str">"SELECT * FROM users WHERE id = %s"</span>,
+        "SELECT * FROM users WHERE id = %s",
         (request.user_id,)
     )
 
-    <span class="cm"># 3. Thread resumes here after DB responds</span>
+    # 3. Thread resumes here after DB responds
     response = json.dumps(user)
     conn.send(response)
 
-<span class="cm"># Create a new OS thread for each incoming connection</span>
-<span class="kw">while</span> <span class="kw">True</span>:
+# Create a new OS thread for each incoming connection
+while True:
     conn = server_socket.accept()
     t = threading.Thread(target=handle_request, args=(conn,))
-    t.start()</code><span class="code-label">Python</span></pre>
+    t.start()</code></pre>
+          </div>
 
           <p>
             Notice there's no <code>async</code> or <code>await</code> anywhere.
@@ -2588,27 +2567,43 @@
             JavaScript went:
           </p>
 
-          <pre><code><span class="cm">// Stage 1: Raw callbacks (pre-ES6)</span>
-db.query(<span class="str">"SELECT * FROM users WHERE id = ?"</span>, [userId],
-  <span class="kw">function</span>(err, result) {
-    <span class="kw">if</span> (err) <span class="kw">return</span> sendError(res, err);
-    <span class="cm">// Nested callback for second query</span>
-    db.query(<span class="str">"SELECT * FROM orders WHERE user_id = ?"</span>, [userId],
-      <span class="kw">function</span>(err, orders) {
-        <span class="kw">if</span> (err) <span class="kw">return</span> sendError(res, err);
-        <span class="cm">// Another level of nesting...</span>
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-http"></span> callbacks.js</span
+              >
+            </div>
+            <pre><code class="language-javascript">// Stage 1: Raw callbacks (pre-ES6)
+db.query("SELECT * FROM users WHERE id = ?", [userId],
+  function(err, result) {
+    if (err) return sendError(res, err);
+    // Nested callback for second query
+    db.query("SELECT * FROM orders WHERE user_id = ?", [userId],
+      function(err, orders) {
+        if (err) return sendError(res, err);
+        // Another level of nesting...
         sendResponse(res, { user: result, orders: orders });
       }
     );
   }
-);</code><span class="code-label">JavaScript / callback hell</span></pre>
+);</code></pre>
+          </div>
 
-          <pre><code><span class="cm">// Stage 2: async/await (modern, syntactic sugar over callbacks)</span>
-<span class="kw">async function</span> <span class="fn">handleRequest</span>(req, res) {
-  <span class="kw">const</span> user  = <span class="kw">await</span> db.query(<span class="str">"SELECT * FROM users WHERE id = ?"</span>, [req.userId]);
-  <span class="kw">const</span> orders = <span class="kw">await</span> db.query(<span class="str">"SELECT * FROM orders WHERE user_id = ?"</span>, [req.userId]);
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-http"></span> async-await.js</span
+              >
+            </div>
+            <pre><code class="language-javascript">// Stage 2: async/await (modern, syntactic sugar over callbacks)
+async function handleRequest(req, res) {
+  const user  = await db.query("SELECT * FROM users WHERE id = ?", [req.userId]);
+  const orders = await db.query("SELECT * FROM orders WHERE user_id = ?", [req.userId]);
   sendResponse(res, { user, orders });
-}</code><span class="code-label">JavaScript / async/await</span></pre>
+}</code></pre>
+          </div>
 
           <p>
             The <code>await</code> keyword is syntactic sugar. When the runtime
@@ -2619,21 +2614,29 @@ db.query(<span class="str">"SELECT * FROM users WHERE id = ?"</span>, [userId],
 
           <h3>Python's asyncio: the same idea</h3>
 
-          <pre><code><span class="kw">import</span> asyncio
-<span class="kw">import</span> aiohttp
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-py"></span> asyncio_demo.py</span
+              >
+            </div>
+            <pre><code class="language-python">import asyncio
+import aiohttp
 
-<span class="kw">async def</span> <span class="fn">handle_request</span>(user_id: <span class="type">int</span>) -> <span class="type">dict</span>:
-    <span class="cm"># await = "yield control to the event loop until this IO completes"</span>
-    user = <span class="kw">await</span> db.fetchone(
-        <span class="str">"SELECT * FROM users WHERE id = $1"</span>, user_id
+async def handle_request(user_id: int) -&gt; dict:
+    # await = "yield control to the event loop until this IO completes"
+    user = await db.fetchone(
+        "SELECT * FROM users WHERE id = $1", user_id
     )
-    orders = <span class="kw">await</span> db.fetch(
-        <span class="str">"SELECT * FROM orders WHERE user_id = $1"</span>, user_id
+    orders = await db.fetch(
+        "SELECT * FROM orders WHERE user_id = $1", user_id
     )
-    <span class="kw">return</span> {<span class="str">"user"</span>: user, <span class="str">"orders"</span>: orders}
+    return {"user": user, "orders": orders}
 
-<span class="cm"># Run with an event loop (uvloop for performance)</span>
-asyncio.run(handle_request(<span class="num">123</span>))</code><span class="code-label">Python</span></pre>
+# Run with an event loop (uvloop for performance)
+asyncio.run(handle_request(123))</code></pre>
+          </div>
 
           <div class="ref-box">
             <div class="ref-box-title">Reference</div>
@@ -2679,39 +2682,55 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
 
           <h3>The original async function</h3>
 
-          <pre><code><span class="kw">async def</span> <span class="fn">fetch_user_data</span>(user_id):
-    user   = <span class="kw">await</span> db.get_user(user_id)      <span class="cm"># State 0 -&gt; 1</span>
-    orders = <span class="kw">await</span> db.get_orders(user_id)    <span class="cm"># State 1 -&gt; 2</span>
-    <span class="kw">return</span> {<span class="str">"user"</span>: user, <span class="str">"orders"</span>: orders}  <span class="cm"># State 2 -&gt; done</span></code><span class="code-label">Python</span></pre>
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-py"></span> handler.py</span
+              >
+            </div>
+            <pre><code class="language-python">async def fetch_user_data(user_id):
+    user   = await db.get_user(user_id)      # State 0 -&gt; 1
+    orders = await db.get_orders(user_id)    # State 1 -&gt; 2
+    return {"user": user, "orders": orders}  # State 2 -&gt; done</code></pre>
+          </div>
 
           <h3>What the runtime sees (conceptual)</h3>
 
-          <pre><code><span class="cm"># Conceptual state machine representation</span>
-<span class="kw">def</span> <span class="fn">fetch_user_data_machine</span>(user_id):
-    state = <span class="num">0</span>
-    user = <span class="kw">None</span>
-    orders = <span class="kw">None</span>
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-py"></span> state_machine.py</span
+              >
+            </div>
+            <pre><code class="language-python"># Conceptual state machine representation
+def fetch_user_data_machine(user_id):
+    state = 0
+    user = None
+    orders = None
 
-    <span class="kw">def</span> <span class="fn">step</span>():
-        <span class="kw">nonlocal</span> state, user, orders
+    def step():
+        nonlocal state, user, orders
 
-        <span class="kw">if</span> state == <span class="num">0</span>:
-            state = <span class="num">1</span>
-            <span class="cm"># Start the IO, register callback for when it completes</span>
-            <span class="kw">return</span> db.get_user(user_id).then(
-                <span class="kw">lambda</span> result: (user := result, step())
+        if state == 0:
+            state = 1
+            # Start the IO, register callback for when it completes
+            return db.get_user(user_id).then(
+                lambda result: (user := result, step())
             )
 
-        <span class="kw">elif</span> state == <span class="num">1</span>:
-            state = <span class="num">2</span>
-            <span class="kw">return</span> db.get_orders(user_id).then(
-                <span class="kw">lambda</span> result: (orders := result, step())
+        elif state == 1:
+            state = 2
+            return db.get_orders(user_id).then(
+                lambda result: (orders := result, step())
             )
 
-        <span class="kw">elif</span> state == <span class="num">2</span>:
-            <span class="kw">return</span> {<span class="str">"user"</span>: user, <span class="str">"orders"</span>: orders}
+        elif state == 2:
+            return {"user": user, "orders": orders}
 
-    <span class="kw">return</span> step</code><span class="code-label">Python / conceptual</span></pre>
+    return step</code></pre>
+          </div>
 
           <div class="diagram-container">
             <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg">
@@ -2987,26 +3006,26 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
         <section id="s09">
           <div class="section-header">
             <span class="section-badge">09</span>
-            <h2>Go Routines &amp; Virtual Threads</h2>
+            <h2>Virtual Threads</h2>
           </div>
 
           <p>
-            Go takes a third approach that is neither raw OS threads nor a
-            single-threaded event loop. It uses <strong>goroutines</strong>:
-            lightweight, user-space threads managed by Go's own runtime
-            scheduler. The term "virtual thread" captures the idea: they behave
-            like threads (blocking code, sequential logic), but they're far
-            cheaper because they're not OS-level constructs.
+            Java 21 takes a third approach that is neither raw OS threads nor a
+            single-threaded event loop. A <strong>virtual thread</strong>
+            is scheduled by the JVM rather than by the operating system. It
+            behaves exactly like a thread, blocking calls and sequential logic,
+            but it costs a fraction as much, because it is a heap object the JVM
+            parks and resumes rather than a kernel construct.
           </p>
 
-          <h3>Why goroutines are cheap</h3>
+          <h3>Why virtual threads are cheap</h3>
 
           <table>
             <thead>
               <tr>
                 <th>Property</th>
                 <th>OS Thread</th>
-                <th>Goroutine</th>
+                <th>Virtual Thread</th>
               </tr>
             </thead>
             <tbody>
@@ -3033,59 +3052,95 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
               <tr>
                 <td><strong>Scheduled by</strong></td>
                 <td>OS kernel</td>
-                <td>Go runtime scheduler</td>
+                <td>JVM scheduler (ForkJoinPool)</td>
               </tr>
             </tbody>
           </table>
 
-          <h3>Go's HTTP server: one goroutine per request</h3>
+          <h3>Spring Boot: one virtual thread per request</h3>
 
           <p>
-            Go's standard library <code>net/http</code> creates a
-            <strong>new goroutine for every incoming request</strong>. This
-            sounds like the thread-per-request model that we just said doesn't
-            scale, but goroutines are so lightweight that it works beautifully.
-            Here's the actual source code pattern from Go's
-            <code>net/http</code> package:
+            With <code>spring.threads.virtual.enabled</code> set, Tomcat creates
+            a <strong>new virtual thread for every incoming request</strong>.
+            This sounds like the thread-per-request model we just said doesn't
+            scale, but virtual threads are cheap enough that it works
+            beautifully. Underneath, the accept loop looks like this:
           </p>
 
-          <pre><code><span class="cm">// From Go's standard library net/http/server.go (simplified)</span>
-<span class="kw">func</span> (srv *Server) <span class="fn">Serve</span>(l net.Listener) <span class="type">error</span> {
-    <span class="kw">for</span> {
-        conn, err := l.Accept()   <span class="cm">// Accept new TCP connection</span>
-        <span class="kw">if</span> err != <span class="kw">nil</span> {
-            <span class="kw">return</span> err
-        }
-        <span class="cm">// Create a NEW goroutine for each connection</span>
-        <span class="kw">go</span> srv.<span class="fn">handleConn</span>(conn)
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-java"></span>
+                VirtualThreadServer.java</span
+              >
+            </div>
+            <pre><code class="language-java">// On Java 21, Spring Boot serves each request on its own virtual
+// thread if you set one property. Tomcat stops handing work to a
+// fixed pool of ~200 platform threads and starts a fresh virtual
+// thread per request instead:
+//
+//   spring.threads.virtual.enabled: true
+//
+// Underneath, that is this loop:
+Executor executor = Executors.newVirtualThreadPerTaskExecutor();
+
+try (ServerSocket listener = new ServerSocket(8080)) {
+    while (true) {
+        Socket conn = listener.accept();   // wait for a connection
+
+        // A NEW virtual thread for every connection. A million of
+        // these is ordinary; a million OS threads is impossible.
+        executor.execute(() -&gt; handle(conn));
     }
-}</code><span class="code-label">Go</span></pre>
+}</code></pre>
+          </div>
 
           <p>
-            The <code>go</code> keyword spawns a new goroutine. This is the
-            equivalent of creating a thread, but at a fraction of the cost
+            <code>Thread.ofVirtual()</code> starts a new virtual thread. It is
+            the equivalent of creating a thread, at a fraction of the cost
             (nanoseconds vs. microseconds, kilobytes vs. megabytes).
           </p>
 
-          <h3>A typical Go handler</h3>
+          <h3>A typical Spring controller</h3>
 
-          <pre><code><span class="kw">func</span> <span class="fn">handleGetUser</span>(w http.ResponseWriter, r *http.Request) {
-    userID := r.URL.Query().Get(<span class="str">"id"</span>)
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-java"></span>
+                UserController.java</span
+              >
+            </div>
+            <pre><code class="language-java">@RestController
+class UserController {
 
-    <span class="cm">// This BLOCKS the goroutine, but not the OS thread.</span>
-    <span class="cm">// The Go scheduler parks this goroutine and runs another.</span>
-    user, err := db.QueryRow(
-        <span class="str">"SELECT name, email FROM users WHERE id = $1"</span>,
-        userID,
-    )
-    <span class="kw">if</span> err != <span class="kw">nil</span> {
-        http.Error(w, <span class="str">"not found"</span>, http.StatusNotFound)
-        <span class="kw">return</span>
+    private final JdbcClient jdbc;
+
+    UserController(JdbcClient jdbc) {
+        this.jdbc = jdbc;
     }
 
-    <span class="cm">// Goroutine resumes here after DB responds</span>
-    json.NewEncoder(w).Encode(user)
-}</code><span class="code-label">Go</span></pre>
+    @GetMapping("/users/{id}")
+    User get(@PathVariable long id) {
+
+        // This call BLOCKS the virtual thread, but not the carrier
+        // thread underneath it. The JVM unmounts this virtual thread
+        // and runs another one on the same OS thread while we wait,
+        // then remounts this one when the database answers, possibly
+        // on a different carrier thread entirely.
+        //
+        // Note what is NOT here: no async, no await, no callback, no
+        // CompletableFuture. Plain blocking code that scales anyway.
+        return jdbc.sql("select name, email from users where id = :id")
+                .param("id", id)
+                .query(User.class)
+                .optional()
+                .orElseThrow(() -&gt;
+                        new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+}</code></pre>
+          </div>
 
           <p>
             Notice:
@@ -3093,9 +3148,10 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
               >no <code>async</code>, no <code>await</code>, no
               callbacks</strong
             >. The code reads like synchronous, blocking code, because the
-            goroutine <em>does</em> block. But the Go runtime scheduler
-            transparently parks it and picks up another goroutine. You get the
-            ergonomics of blocking code with the efficiency of non-blocking IO.
+            virtual thread <em>does</em> block. But the JVM transparently
+            unmounts it from its carrier thread and runs another one there. You
+            get the ergonomics of blocking code with the efficiency of
+            non-blocking IO.
           </p>
         </section>
 
@@ -3109,11 +3165,11 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
           </div>
 
           <p>
-            Go's scheduler uses an <strong>M:N model</strong>: it multiplexes M
-            goroutines onto N OS threads. The number of OS threads is controlled
-            by the <code>GOMAXPROCS</code> environment variable (defaults to the
-            number of CPU cores). Each OS thread runs a local queue of
-            goroutines.
+            The JVM uses an <strong>M:N model</strong>: it multiplexes M virtual
+            threads onto N <strong>carrier threads</strong>, real OS threads in
+            a ForkJoinPool sized to the number of CPU cores by default (tune it
+            with <code>jdk.virtualThreadScheduler.parallelism</code>). Each
+            carrier runs a queue of virtual threads.
           </p>
 
           <div class="diagram-container">
@@ -3127,7 +3183,7 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
                 text-anchor="middle"
                 letter-spacing="0.1em"
               >
-                GO'S M:N SCHEDULER, GOROUTINES MAPPED TO OS THREADS
+                JAVA'S M:N SCHEDULER, VIRTUAL THREADS ON CARRIER THREADS
               </text>
 
               <!-- OS Threads (bottom layer) -->
@@ -3140,7 +3196,7 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
                 text-anchor="middle"
                 letter-spacing="0.05em"
               >
-                OS THREADS (GOMAXPROCS = 4)
+                CARRIER THREADS (4 CORES)
               </text>
 
               <rect
@@ -3233,7 +3289,7 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
                 text-anchor="middle"
                 letter-spacing="0.05em"
               >
-                GOROUTINES (thousands possible)
+                VIRTUAL THREADS (millions possible)
               </text>
 
               <!-- Queue for M1 -->
@@ -3515,7 +3571,7 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
                 text-anchor="middle"
                 font-weight="700"
               >
-                Go Runtime Scheduler
+                JVM Scheduler
               </text>
 
               <!-- Annotation -->
@@ -3543,32 +3599,33 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
               </text>
             </svg>
             <div class="diagram-caption">
-              Fig 7: Go multiplexes many goroutines across a fixed pool of OS
-              threads
+              Fig 7: the JVM multiplexes many virtual threads across a fixed
+              pool of carrier threads
             </div>
           </div>
 
           <p>
-            When a goroutine blocks on IO (e.g., a database read), the Go
-            runtime's internal <strong>network poller</strong> (built on
-            <code>epoll</code>/<code>kqueue</code> under the hood) detects the
-            IO completion and puts the goroutine back on a run queue. This is
+            When a virtual thread blocks on IO (a database read, say), the JVM
+            <strong>unmounts</strong> it from its carrier and the carrier picks
+            up other work. The JDK's internal poller (built on
+            <code>epoll</code>/<code>kqueue</code> under the hood) sees the IO
+            complete and schedules the virtual thread to be remounted. This is
             the best of both worlds: <strong>blocking-style code</strong> with
             <strong>event-loop-level efficiency</strong>.
           </p>
 
           <div class="ref-box">
             <div class="ref-box-title">Reference</div>
-            <a href="https://go.dev/doc/effective_go#goroutines" target="_blank"
-              >Go, Effective Go: Goroutines</a
+            <a href="https://openjdk.org/jeps/444" target="_blank"
+              >JEP 444: Virtual Threads</a
             >
             <a
-              href="https://go.dev/doc/effective_go#concurrency"
+              href="https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html"
               target="_blank"
-              >Go, Effective Go: Concurrency</a
+              >Java 21, Core Libraries: Virtual Threads</a
             >
-            <a href="https://go.dev/blog/pipelines" target="_blank"
-              >Go Blog, Go Concurrency Patterns: Pipelines</a
+            <a href="https://openjdk.org/jeps/453" target="_blank"
+              >JEP 453: Structured Concurrency</a
             >
           </div>
         </section>
@@ -3917,20 +3974,28 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
             <code>await</code> points. Consider this Python example:
           </p>
 
-          <pre><code>balance = <span class="num">100</span>
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-py"></span> async_race.py</span
+              >
+            </div>
+            <pre><code class="language-python">balance = 100
 
-<span class="kw">async def</span> <span class="fn">withdraw</span>(amount: <span class="type">int</span>):
-    <span class="kw">global</span> balance
-    <span class="kw">if</span> balance >= amount:               <span class="cm"># Check at time T1</span>
-        <span class="kw">await</span> process_withdrawal(amount)  <span class="cm"># &lt;- yields control here!</span>
-        balance -= amount                 <span class="cm"># Deduct at time T2</span>
+async def withdraw(amount: int):
+    global balance
+    if balance &gt;= amount:               # Check at time T1
+        await process_withdrawal(amount)  # &lt;- yields control here!
+        balance -= amount                 # Deduct at time T2
 
-<span class="cm"># Both coroutines see balance=100, both pass the check,</span>
-<span class="cm"># both deduct 100 -&gt; balance = -100 (invalid!)</span>
-<span class="kw">await</span> asyncio.gather(
-    withdraw(<span class="num">100</span>),
-    withdraw(<span class="num">100</span>),
-)</code><span class="code-label">Python</span></pre>
+# Both coroutines see balance=100, both pass the check,
+# both deduct 100 -&gt; balance = -100 (invalid!)
+await asyncio.gather(
+    withdraw(100),
+    withdraw(100),
+)</code></pre>
+          </div>
 
           <p>
             The issue: the <code>if</code> check and the deduction are separated
@@ -3957,7 +4022,7 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
         <section id="s12">
           <div class="section-header">
             <span class="section-badge">12</span>
-            <h2>Locks, Mutexes &amp; Channels</h2>
+            <h2>Locks, Mutexes &amp; Queues</h2>
           </div>
 
           <p>
@@ -3968,125 +4033,163 @@ asyncio.run(handle_request(<span class="num">123</span>))</code><span class="cod
           <h3>Mutex (Mutual Exclusion)</h3>
 
           <p>
-            A mutex ensures that only <strong>one thread/goroutine</strong> can
-            execute a critical section at a time. All others must wait until the
-            lock is released. This is the most common synchronization primitive
-            across all languages.
+            A mutex ensures that only <strong>one thread</strong> can execute a
+            critical section at a time. All others must wait until the lock is
+            released. This is the most common synchronization primitive across
+            all languages.
           </p>
 
-          <h4>Python: threading.Lock</h4>
+          <h4>Holding a lock</h4>
 
-          <pre><code><span class="kw">import</span> threading
+          <div class="codeblock" data-cb>
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <div class="code-tabs">
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java
+                </button>
+                <button data-lang="py">
+                  <span class="lang-dot lang-py"></span> Python
+                </button>
+              </div>
+            </div>
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">final class Counter {
 
-counter = <span class="num">0</span>
+    public static void main(String[] args) throws Exception {
+        int[] counter = {0};
+        ReentrantLock lock = new ReentrantLock();
+
+        // close() waits for every submitted task to finish, so the
+        // try-with-resources block is the join.
+        try (ExecutorService pool =
+                     Executors.newVirtualThreadPerTaskExecutor()) {
+            for (int i = 0; i &lt; 1000; i++) {
+                pool.execute(() -&gt; {
+                    lock.lock();          // others queue up here
+                    try {
+                        counter[0]++;     // now one step, not three
+                    } finally {
+                        lock.unlock();    // always release in finally
+                    }
+                });
+            }
+        }
+
+        System.out.println(counter[0]);   // always 1000
+    }
+}
+
+// For a counter specifically, do not reach for a lock at all. An
+// atomic does the same read-modify-write as one CPU instruction,
+// with no thread ever waiting:
+AtomicInteger hits = new AtomicInteger();
+hits.incrementAndGet();</code></pre>
+            </div>
+            <div class="code-panel" data-panel="py">
+              <pre><code class="language-python">import threading
+
+counter = 0
 lock = threading.Lock()
 
-<span class="kw">def</span> <span class="fn">increment</span>():
-    <span class="kw">global</span> counter
-    <span class="kw">with</span> lock:          <span class="cm"># Acquire lock, blocks other threads</span>
-        counter += <span class="num">1</span>   <span class="cm"># Only one thread executes this at a time</span>
-                        <span class="cm"># Lock is released automatically at end of `with`</span>
+def increment():
+    global counter
+    with lock:          # Acquire lock, blocks other threads
+        counter += 1   # Only one thread executes this at a time
+                        # Lock is released automatically at end of `with`
 
-<span class="cm"># Create 1000 threads all incrementing the same counter</span>
-threads = [threading.Thread(target=increment) <span class="kw">for</span> _ <span class="kw">in</span> range(<span class="num">1000</span>)]
-<span class="kw">for</span> t <span class="kw">in</span> threads: t.start()
-<span class="kw">for</span> t <span class="kw">in</span> threads: t.join()
-<span class="kw">print</span>(counter)  <span class="cm"># Always 1000, no lost updates</span></code><span class="code-label">Python</span></pre>
+# Create 1000 threads all incrementing the same counter
+threads = [threading.Thread(target=increment) for _ in range(1000)]
+for t in threads: t.start()
+for t in threads: t.join()
+print(counter)  # Always 1000, no lost updates</code></pre>
+            </div>
+          </div>
 
-          <h4>Go: sync.Mutex</h4>
-
-          <pre><code><span class="kw">package</span> main
-
-<span class="kw">import</span> (
-    <span class="str">"fmt"</span>
-    <span class="str">"sync"</span>
-)
-
-<span class="kw">func</span> <span class="fn">main</span>() {
-    <span class="kw">var</span> counter <span class="type">int</span>
-    <span class="kw">var</span> mu sync.Mutex
-    <span class="kw">var</span> wg sync.WaitGroup
-
-    <span class="kw">for</span> i := <span class="num">0</span>; i < <span class="num">1000</span>; i++ {
-        wg.Add(<span class="num">1</span>)
-        <span class="kw">go func</span>() {
-            <span class="kw">defer</span> wg.Done()
-            mu.Lock()         <span class="cm">// Acquire, other goroutines wait here</span>
-            counter++
-            mu.Unlock()       <span class="cm">// Release, next goroutine can proceed</span>
-        }()
-    }
-
-    wg.Wait()
-    fmt.Println(counter) <span class="cm">// Always 1000</span>
-}</code><span class="code-label">Go</span></pre>
-
-          <h3>Channels: Go's preferred approach</h3>
+          <h3>Queues: sharing by communicating</h3>
 
           <p>
-            Go has a famous proverb:
+            There is a well-worn proverb for this:
             <em
               >"Don't communicate by sharing memory; share memory by
               communicating."</em
             >
-            Instead of multiple goroutines writing to a shared variable (which
-            needs a mutex), you can use <strong>channels</strong>: typed pipes
-            through which goroutines send and receive values. Only the goroutine
-            that <em>owns</em> the data modifies it; others send messages to
-            request changes.
+            Instead of many threads writing to one shared variable (which needs
+            a lock), hand the data to a single owner and use a
+            <strong>queue</strong> as the pipe. Only the thread that
+            <em>owns</em> the data modifies it; everyone else sends it a message
+            asking for a change.
           </p>
 
-          <pre><code><span class="kw">package</span> main
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-java"></span>
+                CounterService.java</span
+              >
+            </div>
+            <pre><code class="language-java">// Java has no channels, but the idea carries over: give ONE thread
+// sole ownership of the state, and let everyone else send it
+// messages. A BlockingQueue is the pipe between them.
+final class CounterService {
 
-<span class="kw">import</span> <span class="str">"fmt"</span>
+    public static void main(String[] args) throws Exception {
+        BlockingQueue&lt;Integer&gt; queue = new ArrayBlockingQueue&lt;&gt;(100);
+        CompletableFuture&lt;Integer&gt; total = new CompletableFuture&lt;&gt;();
 
-<span class="kw">func</span> <span class="fn">counterService</span>(ch <span class="kw">chan</span> <span class="type">int</span>, done <span class="kw">chan</span> <span class="type">bool</span>) {
-    counter := <span class="num">0</span>
-    <span class="kw">for</span> {
-        <span class="kw">select</span> {
-        <span class="kw">case</span> delta := <-ch:
-            counter += delta   <span class="cm">// Only this goroutine modifies counter</span>
-        <span class="kw">case</span> done <- counter:
-            <span class="kw">return</span>
+        Thread owner = Thread.ofVirtual().start(() -&gt; {
+            int counter = 0;              // ONLY this thread touches it
+            try {
+                for (int i = 0; i &lt; 1000; i++) {
+                    counter += queue.take();   // waits for a value
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            total.complete(counter);
+        });
+
+        // 1000 senders. None of them can see `counter`, so none of
+        // them can corrupt it.
+        for (int i = 0; i &lt; 1000; i++) {
+            queue.put(1);
         }
+
+        System.out.println(total.get());  // 1000, and no lock anywhere
+        owner.join();
     }
-}
-
-<span class="kw">func</span> <span class="fn">main</span>() {
-    ch := <span class="kw">make</span>(<span class="kw">chan</span> <span class="type">int</span>, <span class="num">100</span>)     <span class="cm">// Buffered channel</span>
-    done := <span class="kw">make</span>(<span class="kw">chan</span> <span class="type">bool</span>)
-
-    <span class="kw">go</span> counterService(ch, done)
-
-    <span class="cm">// 1000 goroutines send +1 through the channel</span>
-    <span class="kw">for</span> i := <span class="num">0</span>; i < <span class="num">1000</span>; i++ {
-        ch <- <span class="num">1</span>
-    }
-
-    result := <-done
-    fmt.Println(result) <span class="cm">// 1000, no race condition, no mutex needed</span>
-}</code><span class="code-label">Go</span></pre>
+}</code></pre>
+          </div>
 
           <h3>Python asyncio.Lock for async code</h3>
 
-          <pre><code><span class="kw">import</span> asyncio
+          <div class="codeblock single">
+            <div class="code-bar">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <span class="filename"
+                ><span class="lang-dot lang-py"></span> async_lock.py</span
+              >
+            </div>
+            <pre><code class="language-python">import asyncio
 
-balance = <span class="num">100</span>
+balance = 100
 lock = asyncio.Lock()
 
-<span class="kw">async def</span> <span class="fn">withdraw</span>(amount: <span class="type">int</span>):
-    <span class="kw">global</span> balance
-    <span class="kw">async with</span> lock:                     <span class="cm"># Only one coroutine at a time</span>
-        <span class="kw">if</span> balance >= amount:
-            <span class="kw">await</span> process_withdrawal(amount)
+async def withdraw(amount: int):
+    global balance
+    async with lock:                     # Only one coroutine at a time
+        if balance &gt;= amount:
+            await process_withdrawal(amount)
             balance -= amount
 
-<span class="cm"># Now safe, second withdraw waits for the lock</span>
-<span class="kw">await</span> asyncio.gather(
-    withdraw(<span class="num">100</span>),
-    withdraw(<span class="num">100</span>),
+# Now safe, second withdraw waits for the lock
+await asyncio.gather(
+    withdraw(100),
+    withdraw(100),
 )
-<span class="kw">print</span>(balance)  <span class="cm"># 0, not -100</span></code><span class="code-label">Python</span></pre>
+print(balance)  # 0, not -100</code></pre>
+          </div>
 
           <div class="ref-box">
             <div class="ref-box-title">Reference</div>
@@ -4100,14 +4203,20 @@ lock = asyncio.Lock()
               target="_blank"
               >Python, asyncio.Lock</a
             >
-            <a href="https://go.dev/ref/mem" target="_blank"
-              >Go, The Go Memory Model</a
+            <a
+              href="https://docs.oracle.com/javase/specs/jls/se21/html/jls-17.html"
+              target="_blank"
+              >Java Language Specification, Ch. 17: Threads and Locks</a
             >
-            <a href="https://go.dev/doc/effective_go#channels" target="_blank"
-              >Go, Effective Go: Channels</a
+            <a
+              href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/BlockingQueue.html"
+              target="_blank"
+              >Java API, BlockingQueue</a
             >
-            <a href="https://go.dev/blog/codelab-share" target="_blank"
-              >Go Blog, Share Memory by Communicating</a
+            <a
+              href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/atomic/package-summary.html"
+              target="_blank"
+              >Java API, Atomic variables</a
             >
           </div>
         </section>
@@ -4135,7 +4244,7 @@ lock = asyncio.Lock()
             <tbody>
               <tr>
                 <td><strong>IO-Bound, high concurrency</strong></td>
-                <td>Event loop / async-await / goroutines</td>
+                <td>Virtual threads / event loop / async-await</td>
                 <td>
                   Minimal overhead, no context switching, handles 100K+
                   connections
@@ -4157,7 +4266,7 @@ lock = asyncio.Lock()
               </tr>
               <tr>
                 <td><strong>Mixed IO + CPU</strong></td>
-                <td>Goroutines (Go) or worker pools + async (Python/JS)</td>
+                <td>Virtual threads (Java) or worker pools + async (Python)</td>
                 <td>
                   IO handled concurrently; CPU work offloaded to thread/process
                   pools
@@ -4172,7 +4281,7 @@ lock = asyncio.Lock()
             <p>
               <strong>Concurrency</strong> keeps your program productive, it
               stops the CPU from idling while waiting for IO. Use
-              <code>async/await</code>, goroutines, or virtual threads for this.
+              <code>async/await</code> or virtual threads for this.
             </p>
             <p>
               <strong>Parallelism</strong> lets you use multiple CPU cores to do
@@ -4255,8 +4364,9 @@ lock = asyncio.Lock()
               >.
             </li>
             <li>
-              <strong>Concurrency in Go</strong> by Katherine Cox-Buday, deep
-              dive into goroutines, channels, patterns, and pitfalls.
+              <strong>Java Concurrency in Practice</strong> by Brian Goetz, the
+              standard reference on the Java memory model, locks, and safe
+              publication.
             </li>
             <li>
               <strong>Fluent Python, Ch. 19-21</strong> by Luciano Ramalho,
@@ -4286,17 +4396,19 @@ lock = asyncio.Lock()
           </div>
 
           <div class="ref-box">
-            <div class="ref-box-title">Go Documentation</div>
+            <div class="ref-box-title">Java Documentation</div>
             <a
-              href="https://go.dev/doc/effective_go#concurrency"
+              href="https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html"
               target="_blank"
-              >Effective Go, Concurrency</a
+              >Java 21, Virtual Threads</a
             >
-            <a href="https://go.dev/tour/concurrency/1" target="_blank"
-              >A Tour of Go, Goroutines</a
+            <a href="https://openjdk.org/jeps/444" target="_blank"
+              >JEP 444, Virtual Threads</a
             >
-            <a href="https://go.dev/blog/pipelines" target="_blank"
-              >Go Blog, Concurrency Patterns</a
+            <a
+              href="https://docs.spring.io/spring-boot/reference/features/task-execution-and-scheduling.html"
+              target="_blank"
+              >Spring Boot, Task Execution and Scheduling</a
             >
           </div>
 
@@ -4340,8 +4452,8 @@ lock = asyncio.Lock()
         <hr />
 
         <footer class="bfp-footer">
-          System Design - Backend / Chapter 20 / Concurrency. Code targets Go
-          1.22+ and Python 3.11+.
+          System Design - Backend / Chapter 20 / Concurrency. Code targets Java
+          21, Spring Boot 3.3 and Python 3.11+.
         </footer>
       </main>
     </div>
@@ -4403,5 +4515,8 @@ lock = asyncio.Lock()
     <script src="../../assets/copy-button.js"></script>
     <script src="../../assets/enhancements.js"></script>
     <script src="../../assets/shell.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
   </body>
 </html>

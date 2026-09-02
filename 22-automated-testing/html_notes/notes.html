@@ -1070,13 +1070,13 @@
             coverage and flakiness, and into TDD, load testing, and tests in the
             deployment pipeline. Written to explain not just <em>what</em> each
             kind of test does but <em>why</em> it exists and <em>how</em> to
-            write it well. Examples in both Go (<code>testing</code>) and Python
-            (<code>pytest</code>).
+            write it well. Examples in both Java (<code>JUnit 5</code>) and
+            Python (<code>pytest</code>).
           </p>
           <div class="meta">
             <span>Unit / Integration / E2E</span>
-            <span>Go testing / pytest</span>
-            <span>Go 1.22+ / Python 3.11+</span>
+            <span>JUnit 5 / pytest</span>
+            <span>Java 21 / Python 3.11+</span>
             <span>21 sections</span>
           </div>
           <div class="rule"></div>
@@ -1591,27 +1591,30 @@
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// File naming convention: foo.go is tested by foo_test.go in the same package.
-// Test functions are func TestXxx(t *testing.T), the `go test` tool finds them.
-func TestDiscount_AppliesPercentage(t *testing.T) {
-    // Arrange, set up inputs (and any doubles)
-    cart := Cart{Subtotal: 200}
-    coupon := Coupon{Percent: 10}
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// Naming convention: Discount.java is tested by DiscountTest.java, in the
+// same package under src/test/java. JUnit discovers @Test methods itself.
+class DiscountTest {
 
-    // Act, the ONE operation under test
-    total := ApplyDiscount(cart, coupon)
+    @Test
+    void appliesPercentage() {
+        // Arrange, set up inputs (and any doubles)
+        Cart cart = new Cart(200);
+        Coupon coupon = new Coupon(10);
 
-    // Assert, state the expectation; a good message explains the failure
-    if total != 180 {
-        t.Errorf("ApplyDiscount(200, 10%%) = %d; want 180", total)
+        // Act, the ONE operation under test
+        int total = Discount.apply(cart, coupon);
+
+        // Assert, state the expectation. AssertJ prints expected AND actual
+        // on failure, so the message explains itself.
+        assertThat(total).isEqualTo(180);
     }
 }</code></pre>
             </div>
@@ -1655,12 +1658,12 @@ def test_discount_applies_percentage():
           <div class="box note">
             <span class="tag">The standard tools</span>
             <p>
-              This manual uses each language's mainstream stack: Go's built-in
-              <code>testing</code> package with <code>go test</code> (no
-              framework needed; the standard library is the framework), and
+              This manual uses each language's mainstream stack:
+              <strong>JUnit 5</strong> with AssertJ for readable assertions,
+              Mockito for doubles and Testcontainers for real dependencies, and
               Python's <strong>pytest</strong>, the de-facto standard with
-              fixtures, parametrization, and plain-<code>assert</code>
-              rewriting. Both are what you'll find in real backend repos.
+              fixtures, parametrization and plain-<code>assert</code> rewriting.
+              Both are what you'll find in real backend repos.
             </p>
           </div>
         </section>
@@ -1807,35 +1810,43 @@ def test_discount_applies_percentage():
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// The unit: pure logic, no I/O, trivially testable.
-func IsStrongPassword(p string) bool {
-    if len(p) < 8 { return false }
-    var hasDigit, hasUpper bool
-    for _, r := range p {
-        if r >= '0' && r <= '9' { hasDigit = true }
-        if r >= 'A' && r <= 'Z' { hasUpper = true }
-    }
-    return hasDigit && hasUpper
-}
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// The unit: pure logic, no I/O, trivially testable.
+final class Passwords {
 
-func TestIsStrongPassword(t *testing.T) {
-    if IsStrongPassword("short1A") {            // 7 chars -&gt; too short
-        t.Error("expected short password to be rejected")
-    }
-    if !IsStrongPassword("longEnough9") {        // meets all rules
-        t.Error("expected valid password to be accepted")
+    static boolean isStrong(String p) {
+        if (p.length() &lt; 8) {
+            return false;
+        }
+        boolean hasDigit = p.chars().anyMatch(Character::isDigit);
+        boolean hasUpper = p.chars().anyMatch(Character::isUpperCase);
+        return hasDigit &amp;&amp; hasUpper;
     }
 }
 
-// Run:  go test ./...        (-v for verbose, -run TestIsStrong to filter)</code></pre>
+class PasswordsTest {
+
+    @Test
+    void rejectsPasswordsUnderEightCharacters() {
+        assertThat(Passwords.isStrong("short1A")).isFalse();
+    }
+
+    @Test
+    void acceptsAPasswordMeetingEveryRule() {
+        assertThat(Passwords.isStrong("longEnough9")).isTrue();
+    }
+}
+
+// Run:  mvn test
+//       mvn test -Dtest=PasswordsTest             (one class)
+//       mvn test -Dtest=PasswordsTest#rejects*    (one method)</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-python"># The unit: pure logic, no I/O, trivially testable.
@@ -1949,40 +1960,58 @@ def test_accepts_valid_password():
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// The unit depends on an interface, the seam that lets us substitute a double (sec 6).
-type UserRepo interface{ FindByID(id string) (*User, error) }
-
-type Notifier interface{ Send(to, msg string) error }
-
-func Greet(repo UserRepo, n Notifier, id string) error {
-    u, err := repo.FindByID(id)        // collaborator 1
-    if err != nil { return err }
-    return n.Send(u.Email, "Hi "+u.Name) // collaborator 2 (interaction we care about)
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// The unit depends on interfaces. That interface is the seam which lets
+// us substitute a double (sec 6).
+interface UserRepo {
+    Optional&lt;User&gt; findById(String id);
 }
 
-// STUB: returns a canned user. SPY: also records what Send received.
-type stubRepo struct{ user *User }
-func (s stubRepo) FindByID(string) (*User, error) { return s.user, nil }
+interface Notifier {
+    void send(String to, String message);
+}
 
-type spyNotifier struct{ calls int; lastTo string }
-func (s *spyNotifier) Send(to, msg string) error { s.calls++; s.lastTo = to; return nil }
+@Service
+class Greeter {
 
-func TestGreet_SendsEmail(t *testing.T) {
-    repo := stubRepo{user: &User{Email: "a@x.com", Name: "Ada"}} // arrange (stub)
-    spy := &spyNotifier{}
+    private final UserRepo repo;
+    private final Notifier notifier;
 
-    _ = Greet(repo, spy, "u1")                                   // act
+    Greeter(UserRepo repo, Notifier notifier) {
+        this.repo = repo;
+        this.notifier = notifier;
+    }
 
-    if spy.calls != 1 || spy.lastTo != "a@x.com" {               // assert the interaction
-        t.Errorf("expected one email to a@x.com, got %d to %q", spy.calls, spy.lastTo)
+    void greet(String id) {
+        User u = repo.findById(id).orElseThrow();     // collaborator 1
+        notifier.send(u.email(), "Hi " + u.name());   // the interaction
+    }
+}
+
+@ExtendWith(MockitoExtension.class)
+class GreeterTest {
+
+    @Mock UserRepo repo;          // STUB: returns whatever we tell it to
+    @Mock Notifier notifier;      // SPY: records the calls it received
+    @InjectMocks Greeter greeter;
+
+    @Test
+    void sendsOneGreetingToTheUser() {
+        when(repo.findById("u1"))                              // arrange
+                .thenReturn(Optional.of(new User("a@x.com", "Ada")));
+
+        greeter.greet("u1");                                   // act
+
+        // Assert the INTERACTION rather than any returned state.
+        verify(notifier).send("a@x.com", "Hi Ada");
+        verifyNoMoreInteractions(notifier);
     }
 }</code></pre>
             </div>
@@ -2007,10 +2036,11 @@ def test_greet_sends_email():
             </div>
           </div>
           <p class="code-cap">
-            Go tends to hand-write small doubles against an interface (explicit,
-            no magic); Python's <code>unittest.mock</code> generates flexible
-            doubles that both stub returns and record calls. Same concept,
-            different ergonomics.
+            Mockito generates the double from the interface and does both jobs
+            at once: <code>when(...)</code> stubs a return,
+            <code>verify(...)</code> asserts the call happened. Python's
+            <code>unittest.mock</code> works the same way. Same concept,
+            near-identical ergonomics.
           </p>
 
           <div class="box gotcha">
@@ -2256,37 +2286,58 @@ def test_greet_sends_email():
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// Depend on an INTERFACE, not a concrete type, that interface is the seam.
-type OrderRepo interface{ Save(o Order) error }
-
-type OrderService struct{ repo OrderRepo } // injected, not constructed inside
-
-func NewOrderService(r OrderRepo) *OrderService { return &OrderService{repo: r} }
-
-func (s *OrderService) Place(o Order) error {
-    if o.Total <= 0 { return errors.New("invalid total") } // pure logic, easily tested
-    return s.repo.Save(o)
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// Depend on an INTERFACE, not a concrete class. That interface is the seam.
+interface OrderRepo {
+    void save(Order order);
 }
 
-// In tests: a FAKE in-memory repo (no real DB needed)
-type fakeRepo struct{ saved []Order }
-func (f *fakeRepo) Save(o Order) error { f.saved = append(f.saved, o); return nil }
+@Service
+class OrderService {
 
-func TestPlace_RejectsInvalidTotal(t *testing.T) {
-    svc := NewOrderService(&fakeRepo{})
-    if err := svc.Place(Order{Total: 0}); err == nil {
-        t.Error("expected error for non-positive total")
+    private final OrderRepo repo;   // injected, never constructed inside
+
+    OrderService(OrderRepo repo) {
+        this.repo = repo;
+    }
+
+    void place(Order order) {
+        if (order.total() &lt;= 0) {        // pure logic, easy to test
+            throw new IllegalArgumentException("invalid total");
+        }
+        repo.save(order);
     }
 }
-// In production:  NewOrderService(postgresRepo), same code, real dependency.</code></pre>
+
+class OrderServiceTest {
+
+    // A FAKE: a real working implementation, just not the production one.
+    static final class InMemoryOrderRepo implements OrderRepo {
+        final List&lt;Order&gt; saved = new ArrayList&lt;&gt;();
+
+        @Override
+        public void save(Order order) {
+            saved.add(order);
+        }
+    }
+
+    @Test
+    void rejectsANonPositiveTotal() {
+        OrderService service = new OrderService(new InMemoryOrderRepo());
+
+        assertThatThrownBy(() -&gt; service.place(new Order(0)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+}
+// In production Spring injects the JPA repository instead. Same class,
+// real dependency, no test-only branches anywhere in it.</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-python"># Accept the collaborator as a constructor argument, that parameter is the seam.
@@ -2335,9 +2386,9 @@ def test_place_rejects_invalid_total():
             Most logic needs checking against <em>many</em> input/output pairs,
             happy path, edge cases, boundaries, error cases. Copy-pasting a test
             per case is noise. Both languages have an idiom for "same test body,
-            many cases": Go's <strong>table-driven tests</strong> and pytest's
-            <strong>parametrize</strong>. This is where you get cheap, dense
-            coverage of branches and edges, the real workhorse of the unit
+            many cases": JUnit's <strong>@ParameterizedTest</strong> and
+            pytest's <strong>parametrize</strong>. This is where you get cheap,
+            dense coverage of branches and edges, the real workhorse of the unit
             layer.
           </p>
 
@@ -2345,38 +2396,33 @@ def test_place_rejects_invalid_total():
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">func TestApplyDiscount(t *testing.T) {
-    // The TABLE: each row is one case with a name.
-    cases := []struct {
-        name     string
-        subtotal int
-        percent  int
-        want     int
-    }{
-        {"ten percent off 200", 200, 10, 180},
-        {"zero discount",       100, 0,  100},
-        {"full discount",       100, 100, 0},
-        {"rounds down",          99, 10,  90}, // boundary/edge case
-    }
-    for _, c := range cases {
-        // t.Run makes each row a named subtest, failures report the case name.
-        t.Run(c.name, func(t *testing.T) {
-            got := ApplyDiscount(Cart{Subtotal: c.subtotal}, Coupon{Percent: c.percent})
-            if got != c.want {
-                t.Errorf("got %d, want %d", got, c.want)
-            }
-        })
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">class DiscountTableTest {
+
+    // The TABLE: each row is one case, and the first column names it, so a
+    // failure report tells you which row broke rather than which line.
+    @ParameterizedTest(name = "{0}")
+    @CsvSource({
+            "ten percent off 200, 200,  10, 180",
+            "zero discount,       100,   0, 100",
+            "full discount,       100, 100,   0",
+            "rounds down,          99,  10,  90"     // boundary case
+    })
+    void appliesDiscount(String name, int subtotal, int percent, int want) {
+        int got = Discount.apply(new Cart(subtotal), new Coupon(percent));
+
+        assertThat(got).as(name).isEqualTo(want);
     }
 }
-// `go test -run TestApplyDiscount/rounds_down` runs just one case.</code></pre>
+// @ValueSource, @EnumSource and @MethodSource cover the other shapes:
+// @MethodSource is the one to reach for when a row needs real objects.</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-python">import pytest
@@ -2646,38 +2692,47 @@ def test_apply_discount(subtotal, percent, expected):
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// Build tag keeps slow integration tests out of the fast unit run:
-//   //go:build integration      -&gt; run with:  go test -tags=integration ./...
-func TestUserRepo_SaveAndFind(t *testing.T) {
-    ctx := context.Background()
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// @Tag keeps slow integration tests out of the fast unit run. Surefire is
+// configured to exclude the tag, and Failsafe to include it:
+//   mvn test                              -&gt; unit only
+//   mvn verify -Dgroups=integration       -&gt; these as well
+@Tag("integration")
+@SpringBootTest
+@Testcontainers
+class UserRepositoryIT {
 
-    // Arrange: start a REAL Postgres in a throwaway container (testcontainers-go)
-    pg, err := postgres.Run(ctx, "postgres:16",
-        postgres.WithDatabase("app"), postgres.WithUsername("u"), postgres.WithPassword("p"))
-    if err != nil { t.Fatal(err) }
-    t.Cleanup(func() { pg.Terminate(ctx) }) // torn down automatically after the test
+    // A REAL Postgres in a throwaway container, started once per class and
+    // torn down automatically when it finishes.
+    @Container
+    static final PostgreSQLContainer&lt;?&gt; POSTGRES =
+            new PostgreSQLContainer&lt;&gt;("postgres:16");
 
-    dsn, _ := pg.ConnectionString(ctx, "sslmode=disable")
-    db, _ := sql.Open("postgres", dsn)
-    runMigrations(t, db)                    // apply the same schema as production
+    // Point Spring at the container instead of the usual datasource.
+    @DynamicPropertySource
+    static void datasource(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES::getUsername);
+        registry.add("spring.datasource.password", POSTGRES::getPassword);
+    }
 
-    repo := NewUserRepo(db)
+    @Autowired UserRepository repo;   // Flyway applies the production schema
 
-    // Act: exercise the REAL query path
-    _ = repo.Save(User{ID: "u1", Email: "a@x.com"})
-    got, err := repo.FindByID("u1")
+    @Test
+    void savesAndReadsBackThroughRealSql() {
+        repo.save(new User("u1", "a@x.com"));      // the REAL query path
 
-    // Assert: round-trips correctly through actual SQL
-    if err != nil || got.Email != "a@x.com" {
-        t.Fatalf("round-trip failed: %v / %+v", err, got)
+        assertThat(repo.findById("u1"))
+                .get()
+                .extracting(User::email)
+                .isEqualTo("a@x.com");
     }
 }</code></pre>
             </div>
@@ -2709,9 +2764,9 @@ def test_save_and_find(repo):
             </div>
           </div>
           <p class="code-cap">
-            Both isolate slow tests behind a flag/marker (Go build tags, pytest
-            markers) so the millisecond unit suite stays fast and the heavier DB
-            tests run on demand or in CI (sec 19).
+            Both isolate slow tests behind a marker (JUnit <code>@Tag</code>,
+            pytest markers) so the millisecond unit suite stays fast and the
+            heavier DB tests run on demand or in CI (sec 19).
           </p>
 
           <div class="box gotcha">
@@ -2741,51 +2796,48 @@ def test_save_and_find(repo):
             serialization stack and assert on the real response, status code,
             headers, body, <em>without</em> binding a socket or running a server
             over the network. Both ecosystems provide an in-process test client
-            that drives the handler directly: Go's
-            <code>net/http/httptest</code> and the
-            <code>TestClient</code> shipped with FastAPI/Starlette (and Flask's
-            equivalent).
+            that drives the handler directly: Spring's <code>MockMvc</code> and
+            the <code>TestClient</code> shipped with FastAPI/Starlette (and
+            Flask's equivalent).
           </p>
 
           <div class="codeblock" data-cb>
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">import (
-    "net/http"
-    "net/http/httptest"
-    "strings"
-    "testing"
-)
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// @WebMvcTest boots ONLY the web layer: the real routing, filters, JSON
+// mapping and validation, with no server socket and no database.
+@WebMvcTest(UserController.class)
+class UserControllerTest {
 
-func TestCreateUser_Returns201(t *testing.T) {
-    handler := NewRouter(deps)  // the REAL router + handlers (deps may use a fake repo sec 6)
+    @Autowired MockMvc mvc;
+    @MockitoBean UserService users;   // the collaborator is a double (sec 6)
 
-    // Arrange: build a request and an in-memory response recorder (no network)
-    body := strings.NewReader(`{"email":"a@x.com","name":"Ada"}`)
-    req := httptest.NewRequest(http.MethodPost, "/api/v1/users", body)
-    req.Header.Set("Content-Type", "application/json")
-    rec := httptest.NewRecorder()
-
-    // Act: drive the handler directly
-    handler.ServeHTTP(rec, req)
-
-    // Assert: on the real response, status, then body
-    if rec.Code != http.StatusCreated {
-        t.Fatalf("status = %d; want 201; body=%s", rec.Code, rec.Body.String())
+    @Test
+    void createUserReturns201() throws Exception {
+        // Arrange + Act: drive the controller in-process, no network.
+        mvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"a@x.com","name":"Ada"}
+                                """))
+                // Assert on the real response: status first, then the body.
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.email").value("a@x.com"));
     }
-    if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, "application/json") {
-        t.Errorf("content-type = %q", ct)
-    }
-}</code></pre>
+}
+// For the full stack including the servlet container, swap in
+// @SpringBootTest(webEnvironment = RANDOM_PORT) and TestRestTemplate.</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-python">from fastapi.testclient import TestClient
@@ -3282,20 +3334,22 @@ def test_create_user_returns_201():
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-bash"># Built into the toolchain, no extra dependency.
-go test -cover ./...                       # prints % per package
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-bash"># JaCoCo, wired into the Maven build. Nothing extra to install.
+mvn test                       # runs the tests and writes target/jacoco.exec
 
-go test -coverprofile=cover.out ./...      # write a detailed profile
-go tool cover -func=cover.out              # per-function breakdown
-go tool cover -html=cover.out              # open an annotated, line-by-line HTML view</code></pre>
+mvn jacoco:report              # -&gt; target/site/jacoco/index.html, line by line
+mvn verify                     # fails the build if a jacoco check rule is unmet
+
+# JaCoCo reports line AND branch coverage. Branch is the honest number:
+# a line can be "covered" with only one side of its `if` ever taken.</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-bash"># Via the coverage.py / pytest-cov plugin.
@@ -3393,12 +3447,13 @@ pytest --cov=app --cov-branch              # branch coverage, not just line</cod
                 </tr>
                 <tr>
                   <td>
-                    <strong>Concurrency / races</strong>: goroutines, threads,
-                    async timing
+                    <strong>Concurrency / races</strong>: threads, virtual
+                    threads, async timing
                   </td>
                   <td>
-                    Synchronize on signals not timing; run with the race
-                    detector (<code>go test -race</code>).
+                    Synchronize on signals not timing; run repeatedly under load
+                    (<code>@RepeatedTest</code>, or a stress harness like
+                    jcstress).
                   </td>
                 </tr>
                 <tr>
@@ -3461,38 +3516,49 @@ pytest --cov=app --cov-branch              # branch coverage, not just line</cod
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// Go favors explicit helpers over magic. t.Helper() keeps failure line numbers useful.
-// A "factory" with functional options: specify only the fields that matter to the test.
-func newUser(t *testing.T, opts ...func(*User)) User {
-    t.Helper()
-    u := User{ID: "u1", Email: "default@x.com", Active: true} // sensible defaults
-    for _, o := range opts { o(&u) }
-    return u
-}
-func withEmail(e string) func(*User) { return func(u *User) { u.Email = e } }
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">class SignupTest {
 
-// A "fixture" via t.Cleanup: setup returns the thing + auto-teardown.
-func newTempStore(t *testing.T) *Store {
-    t.Helper()
-    dir := t.TempDir()                 // auto-removed after the test
-    s := OpenStore(dir)
-    t.Cleanup(func() { s.Close() })    // teardown runs even if the test fails
-    return s
-}
+    // A "factory": a builder pre-loaded with sensible defaults, so each
+    // test states only the field it actually cares about.
+    private static User.Builder aUser() {
+        return User.builder()
+                .id("u1")
+                .email("default@x.com")
+                .active(true);
+    }
 
-func TestSignup(t *testing.T) {
-    store := newTempStore(t)
-    u := newUser(t, withEmail("ada@x.com")) // only the relevant field is stated
-    _ = store.Save(u)
-    // ...assert...
+    // A "fixture": JUnit creates this directory and deletes it afterwards.
+    @TempDir
+    Path dir;
+
+    private Store store;
+
+    @BeforeEach
+    void openStore() {
+        store = Store.open(dir);
+    }
+
+    @AfterEach
+    void closeStore() {
+        store.close();        // teardown runs even when the test fails
+    }
+
+    @Test
+    void savesTheUser() {
+        User u = aUser().email("ada@x.com").build();   // only what matters
+
+        store.save(u);
+
+        assertThat(store.findById("u1")).isPresent();
+    }
 }</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
@@ -3745,11 +3811,11 @@ def test_signup(temp_store):
           <p>
             Never hit a real third-party API in a unit/integration test, it's
             slow, flaky, rate-limited, and may have side effects. Both
-            ecosystems let you intercept HTTP locally: Go's
-            <code>httptest.Server</code> stands up a fake server you point your
-            client at; Python's <code>responses</code>/<code>respx</code> patch
-            the HTTP layer to return canned responses. (And recall sec 5: prefer
-            wrapping the API behind your own interface so most tests mock
+            ecosystems let you intercept HTTP locally:
+            <code>WireMock</code> stands up a fake server you point your client
+            at; Python's <code>responses</code>/<code>respx</code>
+            patch the HTTP layer to return canned responses. (And recall sec 5:
+            prefer wrapping the API behind your own interface so most tests mock
             <em>that</em>, reserving HTTP-level stubs for testing the client
             adapter itself.)
           </p>
@@ -3758,37 +3824,45 @@ def test_signup(temp_store):
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// 1) Injected clock, deterministic time.
-type Clock interface{ Now() time.Time }
-type fixedClock struct{ t time.Time }
-func (f fixedClock) Now() time.Time { return f.t }
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// 1) An injected Clock makes time deterministic. java.time.Clock exists
+//    for exactly this, so there is no custom interface to write.
+class TokenTest {
 
-func TestTokenExpiry(t *testing.T) {
-    clk := fixedClock{t: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)} // frozen
-    tok := NewToken(clk, time.Hour)
-    if tok.ExpiresAt != clk.Now().Add(time.Hour) {
-        t.Error("expiry not computed from the injected clock")
+    @Test
+    void expiryIsComputedFromTheInjectedClock() {
+        Clock frozen = Clock.fixed(
+                Instant.parse("2026-01-01T12:00:00Z"), ZoneOffset.UTC);
+
+        Token token = Tokens.issue(frozen, Duration.ofHours(1));
+
+        assertThat(token.expiresAt())
+                .isEqualTo(frozen.instant().plus(Duration.ofHours(1)));
     }
 }
 
-// 2) Stub an external HTTP API with httptest.Server, no real network.
-func TestFetchRate(t *testing.T) {
-    srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-        w.Write([]byte(`{"usd_inr": 83.2}`)) // canned response
-    }))
-    defer srv.Close()
+// 2) Stub an external HTTP API with WireMock. It is a real server on
+//    localhost, so your client's own HTTP stack is exercised too.
+@WireMockTest
+class RatesClientTest {
 
-    client := NewRatesClient(srv.URL) // point the client at the fake server's URL
-    rate, _ := client.USDINR()
-    if rate != 83.2 { t.Errorf("got %v", rate) }
+    @Test
+    void parsesTheRateFromTheResponse(WireMockRuntimeInfo wm) {
+        stubFor(get("/usd-inr").willReturn(okJson("""
+                {"usd_inr": 83.2}
+                """)));                          // the canned response
+
+        RatesClient client = new RatesClient(wm.getHttpBaseUrl());
+
+        assertThat(client.usdInr()).isEqualTo(83.2);
+    }
 }</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
@@ -3855,7 +3929,7 @@ def test_fetch_rate():
                   <td><strong>Benchmark</strong></td>
                   <td>How fast / how many allocations for this code path?</td>
                   <td>
-                    Go <code>testing.B</code>; Python
+                    Java <code>JMH</code>; Python
                     <code>pytest-benchmark</code>
                   </td>
                 </tr>
@@ -3884,26 +3958,34 @@ def test_fetch_rate():
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// Benchmarks live beside tests; the tool tunes b.N until timing is stable.
-func BenchmarkParseEvent(b *testing.B) {
-    payload := []byte(`{"type":"click","ts":1717000000}`)
-    b.ReportAllocs()                 // also report allocations/op
-    for i := 0; i < b.N; i++ {       // the loop the framework times
-        _, _ = ParseEvent(payload)
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// JMH handles warm-up, JIT compilation and dead-code elimination. On the
+// JVM a naive System.nanoTime() loop measures the optimiser, not you.
+@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@State(Scope.Benchmark)
+public class ParseEventBenchmark {
+
+    private final byte[] payload = """
+            {"type":"click","ts":1717000000}
+            """.getBytes(UTF_8);
+
+    @Benchmark
+    public Event parseEvent() {
+        return EventParser.parse(payload);   // returned, so JIT cannot elide
     }
 }
 
-// Run:  go test -bench=. -benchmem
-//   BenchmarkParseEvent-8   3142051   382 ns/op   96 B/op   2 allocs/op
-// Compare runs with `benchstat` to catch performance REGRESSIONS over time.</code></pre>
+// Run:  mvn clean verify &amp;&amp; java -jar target/benchmarks.jar
+//   ParseEventBenchmark.parseEvent  avgt  382.4 ns/op
+// Store the numbers and compare across runs to catch REGRESSIONS.</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-python"># pip install pytest-benchmark, the `benchmark` fixture times the callable.
@@ -4161,20 +4243,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: go test -race -cover ./...          # Go: race detector + coverage
-      # - run: pytest -m "not integration" --cov  # Python: skip slow tests here
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21', cache: maven }
+      - run: mvn -B test                        # Java: unit tests + JaCoCo
+      # - run: pytest -m "not integration" --cov  # Python: skip slow ones
 
-  integration:                   # heavier, real DB via services / testcontainers
+  integration:                   # heavier, real DB via Testcontainers
     runs-on: ubuntu-latest
-    needs: unit                  # only if unit tests passed
-    services:
-      postgres:
-        image: postgres:16
-        env: { POSTGRES_PASSWORD: p }
-        ports: ["5432:5432"]
+    needs: unit                  # only if the unit job passed
     steps:
       - uses: actions/checkout@v4
-      - run: go test -tags=integration ./...     # or: pytest -m integration
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21', cache: maven }
+      # Testcontainers starts Postgres itself, so no `services:` block and
+      # no port juggling; the test owns its database.
+      - run: mvn -B verify -Dgroups=integration  # or: pytest -m integration
 # A failed job fails the check -&gt; branch protection blocks the merge.</code></pre>
           </div>
 
@@ -4182,12 +4265,13 @@ jobs:
             <span class="tag">Make the suite fast &amp; parallel</span>
             <p>
               If tests are slow, people skip them, so speed is a feature. Run
-              tests in parallel (Go does so across packages by default and
-              within a test via <code>t.Parallel()</code>; pytest via
-              <code>pytest-xdist</code>), split the fast unit gate from slow
-              integration/E2E stages, and cache dependencies. A suite that
-              returns in under a few minutes gets run; one that takes thirty
-              gets bypassed, and an un-run test protects nothing.
+              tests in parallel (JUnit 5 via
+              <code>junit.jupiter.execution.parallel.enabled</code>, or Maven
+              Surefire forks; pytest via <code>pytest-xdist</code>), split the
+              fast unit gate from slow integration/E2E stages, and cache
+              dependencies. A suite that returns in under a few minutes gets
+              run; one that takes thirty gets bypassed, and an un-run test
+              protects nothing.
             </p>
           </div>
         </section>
@@ -4352,7 +4436,7 @@ jobs:
                 <tr>
                   <td>HTTP tests</td>
                   <td>
-                    <code>httptest</code> / <code>TestClient</code>, drive
+                    <code>MockMvc</code> / <code>TestClient</code>, drive
                     handlers in-process, no socket.
                   </td>
                 </tr>
@@ -4469,16 +4553,16 @@ jobs:
                 letter-spacing: 0.05em;
               "
             >
-              Grounded in the Go <code>testing</code> docs &amp; pytest docs /
-              Testcontainers / the testing- pyramid literature (Cohn, Fowler) /
-              Go 1.22+ / Python 3.11+ examples.
+              Grounded in the JUnit 5 &amp; pytest docs / Testcontainers / the
+              testing-pyramid literature (Cohn, Fowler) / Java 21 / Python 3.11+
+              examples.
             </p>
           </div>
         </section>
 
         <footer class="bfp-footer">
-          System Design - Backend / Chapter 22 / Testing. Code targets Go 1.22+
-          and Python 3.11+.
+          System Design - Backend / Chapter 22 / Testing. Code targets Java 21,
+          Spring Boot 3.3 and Python 3.11+.
         </footer>
       </main>
     </div>

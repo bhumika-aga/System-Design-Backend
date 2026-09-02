@@ -1068,12 +1068,12 @@
             connections across many instances with a pub/sub backplane. Written
             to explain not just <em>what</em> each piece does but
             <em>why</em> it exists and <em>how</em> it works underneath. Server
-            and client code in both Go and Python.
+            and client code in both Java and Python.
           </p>
           <div class="meta">
             <span>Full-duplex over TCP</span>
             <span>Upgrade from HTTP</span>
-            <span>Go 1.22+ / Python 3.11+</span>
+            <span>Java 21 / Python 3.11+</span>
             <span>21 sections</span>
           </div>
           <div class="rule"></div>
@@ -2784,11 +2784,11 @@ Sec-WebSocket-Protocol: chat.v1                  &lt;- the subprotocol the serve
             <p>
               A real-time server without heartbeats slowly fills with
               <strong>zombie connections</strong>: clients that vanished but
-              whose sockets the server still holds, leaking memory and
-              goroutines/tasks (sec 19). Set a ping interval and a pong
-              deadline, drop connections that miss it, and free their resources.
-              It's not optional for production; it's how you keep the connection
-              table honest.
+              whose sockets the server still holds, leaking memory and threads
+              or tasks (sec 19). Set a ping interval and a pong deadline, drop
+              connections that miss it, and free their resources. It's not
+              optional for production; it's how you keep the connection table
+              honest.
             </p>
           </div>
         </section>
@@ -2803,57 +2803,70 @@ Sec-WebSocket-Protocol: chat.v1                  &lt;- the subprotocol the serve
           </div>
           <p>
             A server endpoint does three things: accept the upgrade (sec 4),
-            then run a loop reading messages and a way to write them. In Go the
-            standard library doesn't ship a WebSocket implementation, so you use
-            a library, <code>gorilla/websocket</code> (the long-time standard)
-            or <code>coder/websocket</code> (<code>nhooyr</code>). In Python,
-            frameworks like FastAPI/Starlette expose WebSockets directly, and
-            the <code>websockets</code> library is the standalone standard. Here
-            is a minimal echo server, the "hello world" of WebSockets.
+            then run a loop reading messages and a way to write them. Spring
+            ships WebSocket support in
+            <code>spring-boot-starter-websocket</code>, so there is no
+            third-party library to choose. In Python, frameworks like
+            FastAPI/Starlette expose WebSockets directly, and the
+            <code>websockets</code> library is the standalone standard. Here is
+            a minimal echo server, the "hello world" of WebSockets.
           </p>
 
           <div class="codeblock" data-cb>
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// github.com/gorilla/websocket
-var upgrader = websocket.Upgrader{
-    // CheckOrigin guards against cross-site hijacking, DO NOT leave it open (sec 14).
-    CheckOrigin: func(r *http.Request) bool {
-        return r.Header.Get("Origin") == "https://app.example.com"
-    },
-}
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// Spring's WebSocket support. The handler is an ordinary bean; the config
+// maps it onto a path and states who is allowed to connect.
+@Configuration
+@EnableWebSocket
+class WebSocketConfig implements WebSocketConfigurer {
 
-func wsHandler(w http.ResponseWriter, r *http.Request) {
-    conn, err := upgrader.Upgrade(w, r, nil) // performs the 101 handshake (sec 4)
-    if err != nil {
-        return // upgrader already wrote an HTTP error
+    private final EchoHandler handler;
+
+    WebSocketConfig(EchoHandler handler) {
+        this.handler = handler;
     }
-    defer conn.Close() // always close -&gt; frees the socket (sec 19)
 
-    for { // the READ LOOP, one per connection
-        mt, msg, err := conn.ReadMessage()
-        if err != nil {
-            break // client closed or connection died (sec 6) -&gt; exit, cleanup via defer
-        }
-        // echo it straight back
-        if err := conn.WriteMessage(mt, msg); err != nil {
-            break
-        }
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(handler, "/ws")
+                // Guards against cross-site hijacking. Never "*" (sec 14).
+                .setAllowedOrigins("https://app.example.com");
     }
 }
 
-func main() {
-    http.HandleFunc("/ws", wsHandler) // a normal HTTP route that upgrades
-    http.ListenAndServe(":8080", nil)
+// Spring runs the read loop for you and calls these back, so there is no
+// `for { ReadMessage() }` to write and no socket to close by hand.
+@Component
+class EchoHandler extends TextWebSocketHandler {
+
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) {
+        // The 101 handshake has completed (sec 4); the socket is open.
+    }
+
+    @Override
+    protected void handleTextMessage(WebSocketSession session,
+                                     TextMessage message)
+            throws IOException {
+        session.sendMessage(message);          // echo it straight back
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session,
+                                      CloseStatus status) {
+        // Client closed, or the connection died (sec 6). Spring has already
+        // released the socket, so only your own cleanup belongs here.
+    }
 }</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
@@ -2878,9 +2891,9 @@ async def ws_handler(ws: WebSocket):
             </div>
           </div>
           <p class="code-cap">
-            Go gives each connection a goroutine running a blocking read loop;
-            Python gives each connection an async coroutine awaiting messages.
-            Same structure, accept, loop reading, write, expressed in each
+            Spring runs the read loop itself and calls your handler back per
+            message; Python gives each connection an async coroutine awaiting
+            messages. Same structure, accept, read, write, expressed in each
             language's concurrency model.
           </p>
 
@@ -2889,14 +2902,14 @@ async def ws_handler(ws: WebSocket):
               >The read loop and the write must be coordinated</span
             >
             <p>
-              A subtle but critical rule (especially in Go with gorilla):
-              <strong>concurrent writes to one connection are not safe</strong>,
-              and you typically want one goroutine reading and another writing.
-              The standard pattern is a dedicated <em>writer</em> goroutine fed
-              by a channel, so all writes are serialized. Don't write to the
-              same connection from multiple goroutines without synchronization,
-              it corrupts the frame stream. The hub pattern (sec 10) builds
-              exactly this structure.
+              A subtle but critical rule, and Spring does not solve it for you:
+              <strong>concurrent writes to one connection are not safe</strong>.
+              A <code>WebSocketSession</code> must not be written from two
+              threads at once. The standard pattern is a dedicated
+              <em>writer</em> thread fed by a queue, so all writes are
+              serialized. Don't call <code>sendMessage</code> from several
+              threads without coordination, it corrupts the frame stream. The
+              hub pattern (sec 10) builds exactly this structure.
             </p>
           </div>
         </section>
@@ -2919,41 +2932,45 @@ async def ws_handler(ws: WebSocket):
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// github.com/gorilla/websocket
-func runClient() {
-    // Dial performs the upgrade handshake; header carries auth where allowed (sec 13).
-    h := http.Header{"Authorization": {"Bearer " + token}}
-    conn, _, err := websocket.DefaultDialer.Dial("wss://api.example.com/ws", h)
-    if err != nil {
-        log.Fatal(err)
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">class EchoClient {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(EchoClient.class);
+
+    void run(String token) throws Exception {
+        // Handshake headers carry the token where the platform allows
+        // them, which a browser does not but a server-side client does.
+        WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+        headers.setBearerAuth(token);                       // (sec 13)
+
+        WebSocketClient client = new StandardWebSocketClient();
+
+        // No reader thread to start: Spring hands each frame to the
+        // handler as it arrives.
+        WebSocketSession session = client.execute(
+                new TextWebSocketHandler() {
+                    @Override
+                    protected void handleTextMessage(WebSocketSession s,
+                                                     TextMessage m) {
+                        log.info("recv: {}", m.getPayload());
+                    }
+                },
+                headers,
+                URI.create("wss://api.example.com/ws")).get();
+
+        session.sendMessage(new TextMessage("{\"type\":\"hello\"}"));
+
+        // Graceful close: send a close frame, then the socket shuts (sec 6)
+        session.close(CloseStatus.NORMAL.withReason("bye"));
     }
-    defer conn.Close()
-
-    // reader goroutine
-    go func() {
-        for {
-            _, msg, err := conn.ReadMessage()
-            if err != nil {
-                return
-            }
-            log.Printf("recv: %s", msg)
-        }
-    }()
-
-    // send a message
-    conn.WriteMessage(websocket.TextMessage, []byte(`{"type":"hello"}`))
-
-    // graceful close: send a close frame, then the socket shuts (sec 6)
-    conn.WriteMessage(websocket.CloseMessage,
-        websocket.FormatCloseMessage(websocket.CloseNormalClosure, "bye"))
 }</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
@@ -3218,41 +3235,71 @@ asyncio.run(run_client())</code></pre>
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">type Hub struct {
-    clients    map[*Client]bool
-    register   chan *Client
-    unregister chan *Client
-    broadcast  chan []byte
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// Spring shares ONE handler instance across every session, so the registry
+// has to be thread-safe. A ConcurrentHashMap does the job the Go hub used
+// an owning goroutine for.
+@Component
+class Hub extends TextWebSocketHandler {
+
+    private final Map&lt;String, Client&gt; clients = new ConcurrentHashMap&lt;&gt;();
+
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) {
+        clients.put(session.getId(), new Client(session));
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session,
+                                      CloseStatus status) {
+        Client gone = clients.remove(session.getId());
+        if (gone != null) {
+            gone.stop();               // its writer thread finishes
+        }
+    }
+
+    void broadcast(String message) {
+        // offer() is false when a client's buffer is full. That is a slow
+        // consumer, so drop it rather than stall everyone else (sec 12).
+        clients.values().removeIf(client -&gt; !client.offer(message));
+    }
 }
 
-// One goroutine owns the map -&gt; all mutation is serialized here (no locks needed).
-func (h *Hub) Run() {
-    for {
-        select {
-        case c := <-h.register:
-            h.clients[c] = true
-        case c := <-h.unregister:
-            if _, ok := h.clients[c]; ok {
-                delete(h.clients, c)
-                close(c.send) // tell the client's writer goroutine to stop
+// One bounded queue and one virtual thread per client, so a slow reader
+// blocks only itself.
+final class Client {
+
+    private final BlockingQueue&lt;String&gt; out = new ArrayBlockingQueue&lt;&gt;(64);
+    private final WebSocketSession session;
+    private volatile boolean running = true;
+
+    Client(WebSocketSession session) {
+        this.session = session;
+        Thread.ofVirtual().start(this::drain);
+    }
+
+    boolean offer(String message) {
+        return out.offer(message);     // never blocks the broadcaster
+    }
+
+    void stop() {
+        running = false;
+    }
+
+    private void drain() {
+        try {
+            while (running) {
+                session.sendMessage(new TextMessage(out.take()));
             }
-        case msg := <-h.broadcast:
-            for c := range h.clients {
-                select {
-                case c.send <- msg:        // queue into the client's buffered channel
-                default:                   // buffer full -&gt; slow client; drop it (sec 12)
-                    delete(h.clients, c)
-                    close(c.send)
-                }
-            }
+        } catch (Exception e) {
+            running = false;           // socket gone; let the thread end
         }
     }
 }</code></pre>
@@ -3294,9 +3341,9 @@ hub = Hub()
             <p>
               Two things separate a toy from a real server.
               <strong>Concurrency safety</strong>: never touch the shared
-              connection set from many goroutines/tasks without coordination
-              (Go: one owner goroutine + per-client send channel; Python
-              asyncio: single-threaded, but don't mutate while iterating).
+              connection set from many threads or tasks without coordination
+              (Java: a concurrent map plus a per-client queue; Python asyncio:
+              single-threaded, but don't mutate while iterating).
               <strong>Cleanup</strong>: every path that ends a connection must
               remove it from the registry and free its resources, or you leak
               (sec 19). Register on connect, <em>always</em> unregister on
@@ -3882,29 +3929,51 @@ hub = Hub()
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">func wsHandler(w http.ResponseWriter, r *http.Request) {
-    // AUTHENTICATE FIRST, before upgrading. Reject with a normal HTTP error.
-    token := r.URL.Query().Get("token")          // or read a cookie / subprotocol
-    user, err := verifyJWT(token)                 // your auth logic (auth chapter)
-    if err != nil {
-        http.Error(w, "unauthorized", http.StatusUnauthorized) // 401, no upgrade
-        return
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// AUTHENTICATE DURING THE HANDSHAKE, before the upgrade. A rejected
+// handshake is a normal HTTP error, which the client can actually read.
+@Component
+class AuthHandshakeInterceptor implements HandshakeInterceptor {
+
+    private final JwtVerifier jwt;
+
+    AuthHandshakeInterceptor(JwtVerifier jwt) {
+        this.jwt = jwt;
     }
-    // Only now perform the upgrade; attach the identity to the connection.
-    conn, err := upgrader.Upgrade(w, r, nil)
-    if err != nil {
-        return
+
+    @Override
+    public boolean beforeHandshake(ServerHttpRequest request,
+                                   ServerHttpResponse response,
+                                   WebSocketHandler handler,
+                                   Map&lt;String, Object&gt; attributes) {
+        String token = UriComponentsBuilder.fromUri(request.getURI())
+                .build().getQueryParams().getFirst("token");
+        try {
+            // Attach the identity. Every later frame on this session can
+            // read it back from the session attributes.
+            attributes.put("user", jwt.verify(token));
+            return true;
+        } catch (Exception e) {
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);  // 401, no upgrade
+            return false;
+        }
     }
-    serve(conn, user) // every message from this conn is now tied to `user`
-}</code></pre>
+
+    @Override
+    public void afterHandshake(ServerHttpRequest request,
+                               ServerHttpResponse response,
+                               WebSocketHandler handler, Exception ex) {
+    }
+}
+// Wire it in:  registry.addHandler(handler, "/ws")
+//                      .addInterceptors(authHandshakeInterceptor);</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-python">@app.websocket("/ws")
@@ -4948,10 +5017,10 @@ async def ws_handler(ws: WebSocket):
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>Connection / goroutine leaks</strong></td>
+                  <td><strong>Connection / thread leaks</strong></td>
                   <td>
-                    A disconnect path forgets to unregister &amp; free;
-                    goroutines/tasks and memory accumulate until the server dies
+                    A disconnect path forgets to unregister &amp; free; threads
+                    or tasks and memory accumulate until the server dies
                   </td>
                   <td>
                     Always clean up on <em>every</em> exit path (defer/finally);
@@ -4979,10 +5048,10 @@ async def ws_handler(ws: WebSocket):
                 <tr>
                   <td><strong>Concurrent writes to one conn</strong></td>
                   <td>
-                    Multiple goroutines writing the same socket corrupt the
-                    frame stream
+                    Multiple threads writing the same socket corrupt the frame
+                    stream
                   </td>
-                  <td>One writer goroutine fed by a channel (sec 8, sec 10)</td>
+                  <td>One writer thread fed by a queue (sec 8, sec 10)</td>
                 </tr>
                 <tr>
                   <td><strong>Blocking the read loop</strong></td>
@@ -5186,15 +5255,15 @@ async def ws_handler(ws: WebSocket):
                 <tr>
                   <td>Server</td>
                   <td>
-                    Accept upgrade, then a read loop; library does framing
-                    (gorilla / FastAPI / websockets).
+                    Accept upgrade, then a read loop; the framework does framing
+                    (Spring WebSocket / FastAPI / websockets).
                   </td>
                 </tr>
                 <tr>
                   <td>Concurrency</td>
                   <td>
                     One writer per connection; never write the same socket from
-                    many goroutines.
+                    many threads.
                   </td>
                 </tr>
                 <tr>
@@ -5328,15 +5397,15 @@ async def ws_handler(ws: WebSocket):
             >
               Grounded in MDN
               (developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) &amp;
-              RFC 6455 / gorilla/websocket &amp; the websockets/FastAPI docs /
-              Go 1.22+ / Python 3.11+ examples.
+              RFC 6455 / Spring WebSocket &amp; the websockets/FastAPI docs /
+              Java 21 / Python 3.11+ examples.
             </p>
           </div>
         </section>
 
         <footer class="bfp-footer">
-          System Design - Backend / Chapter 24 / WebSockets. Code targets Go
-          1.22+ and Python 3.11+.
+          System Design - Backend / Chapter 24 / WebSockets. Code targets Java
+          21, Spring Boot 3.3 and Python 3.11+.
         </footer>
       </main>
     </div>

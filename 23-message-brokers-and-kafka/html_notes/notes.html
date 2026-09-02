@@ -1074,12 +1074,12 @@
             event-driven patterns, the outbox/CDC trick, and stream processing.
             Written to explain not just <em>what</em> each piece does but
             <em>why</em> it exists and <em>how</em> it works underneath.
-            Producer/consumer code in both Go and Python.
+            Producer/consumer code in both Java and Python.
           </p>
           <div class="meta">
             <span>Distributed commit log</span>
             <span>Partitions &amp; consumer groups</span>
-            <span>Go 1.22+ / Python 3.11+</span>
+            <span>Java 21 / Python 3.11+</span>
             <span>21 sections</span>
           </div>
           <div class="rule"></div>
@@ -2679,38 +2679,54 @@
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">// Using confluent-kafka-go (librdkafka). kafka-go (segmentio) is a pure-Go alternative.
-p, _ := kafka.NewProducer(&kafka.ConfigMap{
-    "bootstrap.servers": "localhost:9092",
-    "acks":              "all",   // durability: leader + in-sync replicas (sec 5)
-    "enable.idempotence": true,   // no duplicates on producer retry (sec 9)
-    "linger.ms":         5,       // wait up to 5ms to batch records (throughput)
-    "compression.type":  "zstd",
-})
-defer p.Close()
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// Spring for Apache Kafka wraps the official Java client. Almost all of
+// the producer tuning lives in application.yaml rather than in code:
+//
+//   spring.kafka.producer:
+//     acks: all                   # leader + in-sync replicas (sec 5)
+//     properties:
+//       enable.idempotence: true  # no duplicates on retry (sec 9)
+//       linger.ms: 5              # wait up to 5ms to batch (throughput)
+//       compression.type: zstd
+@Service
+class OrderEvents {
 
-topic := "orders"
-// The KEY decides the partition -&gt; all events for one order stay ordered (sec 4, sec 10).
-err := p.Produce(&kafka.Message{
-    TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-    Key:            []byte("order-42"),
-    Value:          []byte(`{"event":"placed","amount":1999}`),
-}, nil)
-if err != nil { log.Fatal(err) }
+    private static final Logger log =
+            LoggerFactory.getLogger(OrderEvents.class);
 
-// Producing is async + batched; Flush blocks until queued messages are delivered.
-p.Flush(5000)
+    private final KafkaTemplate&lt;String, String&gt; kafka;
 
-// Delivery reports tell you the final partition/offset (or an error) per message:
-//   for e := range p.Events() { if m, ok := e.(*kafka.Message); ok { ... } }</code></pre>
+    OrderEvents(KafkaTemplate&lt;String, String&gt; kafka) {
+        this.kafka = kafka;
+    }
+
+    void placed(String orderId, String payload) {
+        // The KEY picks the partition, so every event for one order lands
+        // on the same partition and stays in order (sec 4, sec 10).
+        CompletableFuture&lt;SendResult&lt;String, String&gt;&gt; sent =
+                kafka.send("orders", orderId, payload);
+
+        // Sending is asynchronous and batched. The future carries the
+        // final partition and offset, or the broker's error.
+        sent.whenComplete((result, ex) -&gt; {
+            if (ex != null) {
+                log.error("publish failed for {}", orderId, ex);
+                return;
+            }
+            RecordMetadata md = result.getRecordMetadata();
+            log.info("published to {}-{} at offset {}",
+                    md.topic(), md.partition(), md.offset());
+        });
+    }
+}</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-python"># Using confluent-kafka (librdkafka). kafka-python / aiokafka are alternatives.
@@ -3084,29 +3100,37 @@ p.flush()                          # block until queued messages are delivered</
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-go">c, _ := kafka.NewConsumer(&kafka.ConfigMap{
-    "bootstrap.servers": "localhost:9092",
-    "group.id":          "billing",        // the consumer GROUP, scale by adding instances
-    "auto.offset.reset": "earliest",       // where to start if no committed offset (sec 8)
-    "enable.auto.commit": false,           // we'll commit manually for at-least-once (sec 9)
-})
-defer c.Close()
-c.Subscribe("orders", nil)                 // Kafka assigns this instance some partitions
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-java">// The group id lives in application.yaml. Scale by running more copies of
+// the app: Kafka rebalances the partitions across the group for you.
+//
+//   spring.kafka.consumer:
+//     group-id: billing
+//     auto-offset-reset: earliest  # no committed offset yet (sec 8)
+//     enable-auto-commit: false    # commit by hand for at-least-once
+//   spring.kafka.listener:
+//     ack-mode: manual             # the listener decides when to commit
+@Component
+class BillingListener {
 
-for {
-    msg, err := c.ReadMessage(-1)          // blocks for the next record
-    if err != nil { continue }
+    @KafkaListener(topics = "orders")
+    void onOrder(ConsumerRecord&lt;String, String&gt; record,
+                 Acknowledgment ack) {
 
-    process(msg.Value)                     // do the work FIRST...
-    c.CommitMessage(msg)                   // ...THEN commit the offset (at-least-once, sec 9)
+        process(record.value());   // do the work FIRST...
+        ack.acknowledge();         // ...THEN commit the offset
+
+        // Crash between those two lines and the record is redelivered.
+        // That is at-least-once, which is why process() has to be
+        // idempotent (sec 9).
+    }
 }</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
@@ -5816,15 +5840,16 @@ COMMIT;   -- both succeed together, or neither does, no dual-write gap
               "
             >
               Grounded in the Apache Kafka &amp; Confluent docs / the
-              log/stream-table literature (Kreps) / Debezium for CDC / Go 1.22+
-              (confluent-kafka-go) / Python 3.11+ (confluent-kafka) examples.
+              log/stream-table literature (Kreps) / Debezium for CDC / Java 21
+              (Spring for Apache Kafka) / Python 3.11+ (confluent-kafka)
+              examples.
             </p>
           </div>
         </section>
 
         <footer class="bfp-footer">
-          System Design - Backend / Chapter 23 / Kafka. Code targets Go 1.22+
-          and Python 3.11+.
+          System Design - Backend / Chapter 23 / Kafka. Code targets Java 21,
+          Spring Boot 3.3 and Python 3.11+.
         </footer>
       </main>
     </div>

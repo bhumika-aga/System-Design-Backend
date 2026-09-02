@@ -1068,7 +1068,7 @@
             deployments, services, probes, autoscaling), and out to CI/CD
             pipelines and zero-downtime rollouts. Written to explain not just
             <em>what</em> each piece does but <em>why</em> it exists and
-            <em>how</em> it works underneath. Application examples in both Go
+            <em>how</em> it works underneath. Application examples in both Java
             and Python.
           </p>
           <div class="meta">
@@ -2358,40 +2358,43 @@
             <code>docker build</code> reads it, runs each step, and caches the
             result. Because the file is plain text in your repo, your build is
             reproducible and reviewable, the environment becomes code. Here is
-            the same web service containerized in Go and in Python:
+            the same web service containerized in Java and in Python:
           </p>
 
           <div class="codeblock" data-cb>
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
+            <div class="code-panel on" data-panel="java">
               <pre><code class="language-dockerfile"># FROM picks the base image, the first (bottom) layer. Pin a version, never :latest
-FROM golang:1.22
+FROM eclipse-temurin:21-jdk
 
 # WORKDIR sets the working dir for the instructions that follow (and at runtime)
 WORKDIR /app
 
-# Copy dependency manifests FIRST and download, this layer caches across code edits (sec 7)
-COPY go.mod go.sum ./
-RUN go mod download
+# Copy the build files FIRST and warm the dependency cache, so this layer
+# survives ordinary source edits (sec 7)
+COPY pom.xml mvnw ./
+COPY .mvn .mvn
+RUN ./mvnw dependency:go-offline
 
-# Now copy the source and build the binary
-COPY . .
-RUN go build -o /server ./cmd/server
+# Now copy the source and build the jar
+COPY src src
+RUN ./mvnw clean package -DskipTests
 
-# Document the port the app listens on (metadata; publishing happens at run time sec 8)
+# Document the port the app listens on. Metadata only; publishing
+# happens at run time (sec 8)
 EXPOSE 8080
 
 # CMD is the default command run when a container starts from this image
-CMD ["/server"]</code></pre>
+CMD ["java", "-jar", "target/app.jar"]</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-dockerfile"># Pin a slim base, smaller and fewer CVEs than the full image
@@ -2555,7 +2558,7 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
                 fill="#8f2f20"
                 text-anchor="middle"
               >
-                golang:1.22 / python full
+                temurin:21-jdk / python full
               </text>
               <g class="mono" font-size="10" fill="#5b5347">
                 <text x="50" y="80">+ compiler / full SDK</text>
@@ -2579,7 +2582,7 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
                 fill="#7fd1c4"
                 text-anchor="middle"
               >
-                /server (the only keeper)
+                app.jar (the only keeper)
               </text>
               <text
                 x="180"
@@ -2649,7 +2652,7 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
                 fill="#3f6f4e"
                 text-anchor="middle"
               >
-                distroless / alpine
+                jre-alpine / slim
               </text>
               <rect
                 x="440"
@@ -2667,7 +2670,7 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
                 fill="#7fd1c4"
                 text-anchor="middle"
               >
-                /server
+                app.jar
               </text>
               <text
                 x="550"
@@ -2677,7 +2680,7 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
                 fill="#3f6f4e"
                 text-anchor="middle"
               >
-                ~15 MB, binary + minimal runtime only
+                ~180 MB, jar + JRE only
               </text>
             </svg>
           </div>
@@ -2686,30 +2689,32 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <div class="code-tabs">
-                <button class="on" data-lang="go">
-                  <span class="lang-go">&#9679;</span> Go</button
+                <button class="on" data-lang="java">
+                  <span class="lang-dot lang-java"></span> Java</button
                 ><button data-lang="py">
-                  <span class="lang-py">&#9679;</span> Python
+                  <span class="lang-dot lang-py"></span> Python
                 </button>
               </div>
             </div>
-            <div class="code-panel on" data-panel="go">
-              <pre><code class="language-dockerfile"># ---- Stage 1: build with the full Go toolchain ----
-FROM golang:1.22 AS builder
+            <div class="code-panel on" data-panel="java">
+              <pre><code class="language-dockerfile"># ---- Stage 1: build with the full JDK and Maven ----
+FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-# static binary, no libc dependency, perfect for a scratch/distroless final image
-RUN CGO_ENABLED=0 go build -o /server ./cmd/server
+COPY pom.xml mvnw ./
+COPY .mvn .mvn
+RUN ./mvnw dependency:go-offline
+COPY src src
+RUN ./mvnw clean package -DskipTests
 
-# ---- Stage 2: tiny runtime, no compiler, non-root ----
-FROM gcr.io/distroless/static:nonroot
-COPY --from=builder /server /server   # copy ONLY the artifact across stages
+# ---- Stage 2: a JRE only, no compiler, no Maven cache, non-root ----
+FROM eclipse-temurin:21-jre-alpine
+COPY --from=builder /app/target/app.jar /app.jar   # copy ONLY the artifact
 EXPOSE 8080
-USER nonroot:nonroot                  # never run as root (sec 17, security)
-ENTRYPOINT ["/server"]
-# Result: a ~10-15 MB image with no shell, no package manager, minimal CVEs</code></pre>
+USER 1000:1000                        # never run as root (sec 17, security)
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+# Result: ~180 MB. A JVM app cannot reach Go's ~15 MB, but dropping the JDK
+# and the build cache still saves roughly 700 MB. Use jlink or a distroless
+# java base to go smaller still.</code></pre>
             </div>
             <div class="code-panel" data-panel="py">
               <pre><code class="language-dockerfile"># ---- Stage 1: install deps into a venv with build tools available ----
@@ -2733,10 +2738,11 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
             </div>
           </div>
           <p class="code-cap">
-            Go compiles to a single static binary, so the final stage can be
-            near-empty (distroless/scratch). Python needs the interpreter, so
-            the win comes from copying a pre-built virtualenv into a
-            <code>-slim</code> base instead of carrying the compilers.
+            Java ships a jar that still needs a JVM, so the final stage is a JRE
+            image rather than an empty one, but dropping the JDK, Maven and the
+            build cache is still most of the saving. Python needs the
+            interpreter, so its win comes from copying a pre-built virtualenv
+            into a <code>-slim</code> base instead of carrying the compilers.
           </p>
 
           <div class="box key">
@@ -2956,6 +2962,7 @@ CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
 node_modules
 *.md
 .env            # never bake secrets into an image (sec 16)
+target/         # Maven build output, rebuilt inside the image
 **/__pycache__
 *.log
 dist/
@@ -3511,7 +3518,7 @@ docker pull registry.example.com/team/myapp:1.4.0     # download (what prod/K8s 
             <div class="code-bar">
               <div class="dots"><i></i><i></i><i></i></div>
               <span class="filename"
-                >compose.yaml / an API (your Go or Python service), Postgres,
+                >compose.yaml / an API (your Java or Python service), Postgres,
                 and Redis</span
               >
             </div>
@@ -5226,7 +5233,8 @@ stringData:                       # plaintext here; stored base64-encoded in etc
 #   envFrom:
 #     - configMapRef: { name: api-config }    # all keys -&gt; env vars
 #     - secretRef:    { name: api-secrets }   # secret keys -&gt; env vars
-# Your app then reads os.Getenv("LOG_LEVEL") / os.environ["DATABASE_URL"] (sec config chapter)</code></pre>
+# Your app reads them as ordinary config: @Value("${LOG_LEVEL}") or
+# env.getProperty("DATABASE_URL") in Spring, os.environ[...] in Python</code></pre>
           </div>
 
           <div class="box gotcha">
@@ -5970,7 +5978,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run tests              # CI gate, must pass before we ship (sec testing chapter)
-        run: make test               # go test ./...  |  pytest
+        run: make test               # mvn test  |  pytest
 
       - name: Build image
         run: docker build -t $REGISTRY/myapp:${{ github.sha }} .   # tag = commit SHA (sec 8)
@@ -6480,15 +6488,15 @@ jobs:
               "
             >
               Grounded in the Docker &amp; Kubernetes docs / OCI image-spec /
-              the Twelve-Factor App / Go 1.22+ / Python 3.11+ application
+              the Twelve-Factor App / Java 21 / Python 3.11+ application
               examples.
             </p>
           </div>
         </section>
 
         <footer class="bfp-footer">
-          System Design - Backend / Chapter 21 / Containers. Code targets Go
-          1.22+ and Python 3.11+.
+          System Design - Backend / Chapter 21 / Containers. Code targets Java
+          21, Spring Boot 3.3 and Python 3.11+.
         </footer>
       </main>
     </div>

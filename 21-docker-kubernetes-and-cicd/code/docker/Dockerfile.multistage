@@ -1,0 +1,18 @@
+# ---- Stage 1: build with the full JDK and Maven ----
+FROM eclipse-temurin:21-jdk AS builder
+WORKDIR /app
+COPY pom.xml mvnw ./
+COPY .mvn .mvn
+RUN ./mvnw dependency:go-offline
+COPY src src
+RUN ./mvnw clean package -DskipTests
+
+# ---- Stage 2: a JRE only, no compiler, no Maven cache, non-root ----
+FROM eclipse-temurin:21-jre-alpine
+COPY --from=builder /app/target/app.jar /app.jar   # copy ONLY the artifact
+EXPOSE 8080
+USER 1000:1000                        # never run as root (sec 17, security)
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+# Result: ~180 MB. A JVM app cannot reach Go's ~15 MB, but dropping the JDK
+# and the build cache still saves roughly 700 MB. Use jlink or a distroless
+# java base to go smaller still.

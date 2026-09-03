@@ -14,25 +14,26 @@ record ApiError(String code, String message,
 // ONE handler gives every error in the whole API the same shape.
 @RestControllerAdvice
 class ApiErrorHandler {
-
-        @ExceptionHandler(MethodArgumentNotValidException.class)
-        @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY) // 422
-        Map<String, ApiError> onValidationFailed(
-                        MethodArgumentNotValidException e) {
-
-                List<FieldIssue> details = e.getBindingResult()
-                                .getFieldErrors()
-                                .stream()
-                                .map(f -> new FieldIssue(f.getField(),
-                                                f.getDefaultMessage()))
-                                .toList();
-
-                return Map.of("error", new ApiError(
-                                "validation_failed",
-                                "Some fields are invalid.",
-                                details,
-                                MDC.get("requestId")));
-        }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+        // 422
+    Map<String, ApiError> onValidationFailed(
+        MethodArgumentNotValidException e) {
+        
+        List<FieldIssue> details = e.getBindingResult()
+                                       .getFieldErrors()
+                                       .stream()
+                                       .map(f -> new FieldIssue(f.getField(),
+                                           f.getDefaultMessage()))
+                                       .toList();
+        
+        return Map.of("error", new ApiError(
+            "validation_failed",
+            "Some fields are invalid.",
+            details,
+            MDC.get("requestId")));
+    }
 }
 // requestId comes from the MDC that the request-id filter set back in
 // chapter 6, so a user can quote the id from an error response and you

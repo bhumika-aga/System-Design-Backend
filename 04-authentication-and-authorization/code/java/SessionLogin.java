@@ -5,7 +5,7 @@
 @Configuration
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 900) // 15 min
 class SessionConfig {
-
+    
     @Bean
     PasswordEncoder passwordEncoder() {
         // BCrypt salts every password itself, and is slow on purpose
@@ -15,29 +15,29 @@ class SessionConfig {
 
 @RestController
 class LoginController {
-
+    
     private final PasswordEncoder encoder;
     private final UserRepository users;
-
+    
     LoginController(PasswordEncoder encoder, UserRepository users) {
         this.encoder = encoder;
         this.users = users;
     }
-
+    
     @PostMapping("/login")
     ResponseEntity<Void> login(@RequestBody Credentials creds,
-            HttpServletRequest request) {
-
+                               HttpServletRequest request) {
+        
         User user = users.findByEmail(creds.email())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED, "authentication failed"));
-
+                        .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.UNAUTHORIZED, "authentication failed"));
+        
         // matches() is constant-time internally
         if (!encoder.matches(creds.password(), user.passwordHash())) {
             throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "authentication failed");
+                HttpStatus.UNAUTHORIZED, "authentication failed");
         }
-
+        
         HttpSession session = request.getSession(true); // new session
         session.setAttribute("userId", user.id());
         session.setAttribute("role", user.role());

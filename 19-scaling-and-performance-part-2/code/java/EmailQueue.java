@@ -11,13 +11,13 @@ record EmailJob(String to, String subject, String template) {
 // return, so the caller waits for the enqueue, not for the send.
 @Service
 class EmailQueue {
-
+    
     private final RabbitTemplate rabbit;
-
+    
     EmailQueue(RabbitTemplate rabbit) {
         this.rabbit = rabbit;
     }
-
+    
     void enqueue(EmailJob job) {
         rabbit.convertAndSend("emails", job);
     }
@@ -28,7 +28,7 @@ class EmailQueue {
 // point of moving the work off the request path.
 @Component
 class EmailWorker {
-
+    
     @RabbitListener(queues = "emails")
     void handle(EmailJob job) {
         sendEmail(job); // 300ms, and nobody is waiting on it

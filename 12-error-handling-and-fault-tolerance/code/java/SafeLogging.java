@@ -6,23 +6,23 @@ package com.example.errors.logging;
 
 @Service
 class LoginService {
-
-        private static final Logger log = LoggerFactory.getLogger(LoginService.class);
-
-        void onFailedLogin(User user, LoginRequest request, AppConfig config) {
-
-                // UNSAFE, never do this
-                log.error("login_failed email={} password={} apiKey={}",
-                                user.email(), // PII, now in the log index
-                                request.password(), // catastrophic
-                                config.openaiKey()); // secret leak
-
-                // SAFE, identifiers and correlation only
-                log.error("login_failed userId={} correlationId={} reason={}",
-                                user.id(),
-                                MDC.get("requestId"),
-                                "invalid_credentials"); // a generic code, not a DB message
-        }
+    
+    private static final Logger log = LoggerFactory.getLogger(LoginService.class);
+    
+    void onFailedLogin(User user, LoginRequest request, AppConfig config) {
+        
+        // UNSAFE, never do this
+        log.error("login_failed email={} password={} apiKey={}",
+            user.email(), // PII, now in the log index
+            request.password(), // catastrophic
+            config.openaiKey()); // secret leak
+        
+        // SAFE, identifiers and correlation only
+        log.error("login_failed userId={} correlationId={} reason={}",
+            user.id(),
+            MDC.get("requestId"),
+            "invalid_credentials"); // a generic code, not a DB message
+    }
 }
 
 // Logs outlive the incident. They are shipped, indexed, and read by

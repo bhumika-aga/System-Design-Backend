@@ -1,1 +1,5 @@
-{ "password": "random", "passwordConfirmation": "another", "married": false }
+{
+  "password": "random",
+  "passwordConfirmation": "another",
+  "married": false
+}

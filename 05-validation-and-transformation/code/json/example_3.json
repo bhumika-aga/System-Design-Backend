@@ -1,1 +1,5 @@
-{ "errors": ["name: expected a string, received a number"] }
+{
+  "errors": [
+    "name: expected a string, received a number"
+  ]
+}

@@ -10,11 +10,11 @@ package com.example.testing;
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Benchmark)
 public class ParseEventBenchmark {
-
+    
     private final byte[] payload = """
-            {"type":"click","ts":1717000000}
-            """.getBytes(UTF_8);
-
+        {"type":"click","ts":1717000000}
+        """.getBytes(UTF_8);
+    
     @Benchmark
     public Event parseEvent() {
         return EventParser.parse(payload); // returned, so JIT cannot elide

@@ -6,20 +6,20 @@ package com.example.tasks.sqs;
 
 @Component
 class SqsFifoDedup {
-
+    
     private final SqsClient sqs;
-
+    
     SqsFifoDedup(SqsClient sqs) {
         this.sqs = sqs;
     }
-
+    
     void enqueueOrder(String orderId, String payload) {
         sqs.sendMessage(SendMessageRequest.builder()
-                .queueUrl("https://sqs.us-east-1.amazonaws.com/123/orders.fifo")
-                .messageBody(payload)
-                .messageGroupId("order-processing") // ordering group
-                .messageDeduplicationId(orderId) // per business event
-                .build());
+                            .queueUrl("https://sqs.us-east-1.amazonaws.com/123/orders.fifo")
+                            .messageBody(payload)
+                            .messageGroupId("order-processing") // ordering group
+                            .messageDeduplicationId(orderId) // per business event
+                            .build());
     }
 }
 // Send the same orderId twice within five minutes and SQS silently

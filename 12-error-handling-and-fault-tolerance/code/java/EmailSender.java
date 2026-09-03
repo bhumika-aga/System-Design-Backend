@@ -6,21 +6,21 @@ package com.example.errors.retry;
 
 @Service
 class EmailSender {
-
+    
     private static final Logger log = LoggerFactory.getLogger(EmailSender.class);
-
+    
     // Spring Retry turns the whole loop into an annotation.
     @Retryable(retryFor = TransientEmailException.class, // and nothing else
-            maxAttempts = 5, backoff = @Backoff(delay = 1000, multiplier = 2, random = true))
+        maxAttempts = 5, backoff = @Backoff(delay = 1000, multiplier = 2, random = true))
     public void send(String to, String subject, String body) {
         emailClient.send(to, subject, body);
     }
-
+    
     // Called once the attempts are exhausted. Without it, the caller
     // simply sees the last exception and the message is lost.
     @Recover
     void giveUp(TransientEmailException e,
-            String to, String subject, String body) {
+                String to, String subject, String body) {
         log.error("all retries exhausted for {}", to, e);
         deadLetters.save(to, subject, body);
     }

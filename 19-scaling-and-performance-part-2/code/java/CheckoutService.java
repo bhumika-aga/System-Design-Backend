@@ -16,17 +16,17 @@ package com.example.scaling2.metrics;
 // Add your own timer where a business step matters more than a route:
 @Service
 class CheckoutService {
-
+    
     private final MeterRegistry meters;
-
+    
     CheckoutService(MeterRegistry meters) {
         this.meters = meters;
     }
-
+    
     Receipt checkout(Cart cart) {
         return Timer.builder("checkout.duration")
-                .publishPercentiles(0.5, 0.9, 0.99)
-                .register(meters)
-                .record(() -> settle(cart));
+                   .publishPercentiles(0.5, 0.9, 0.99)
+                   .register(meters)
+                   .record(() -> settle(cart));
     }
 }

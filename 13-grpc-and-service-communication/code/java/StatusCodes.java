@@ -6,36 +6,36 @@ package com.example.grpc.status;
 
 @GrpcService
 class StatusCodesServer extends UserServiceGrpc.UserServiceImplBase {
-
+    
     // SERVER: answer with a typed status, never a bare exception message.
     @Override
     public void getUser(GetUserRequest request,
-            StreamObserver<GetUserResponse> observer) {
-
+                        StreamObserver<GetUserResponse> observer) {
+        
         if (request.getId().isEmpty()) {
             observer.onError(Status.INVALID_ARGUMENT
-                    .withDescription("id is required")
-                    .asRuntimeException());
+                                 .withDescription("id is required")
+                                 .asRuntimeException());
             return;
         }
-
+        
         Optional<User> user = db.find(request.getId());
         if (user.isEmpty()) {
             observer.onError(Status.NOT_FOUND
-                    .withDescription("no user with id " + request.getId())
-                    .asRuntimeException());
+                                 .withDescription("no user with id " + request.getId())
+                                 .asRuntimeException());
             return;
         }
-
+        
         observer.onNext(GetUserResponse.newBuilder()
-                .setUser(user.get())
-                .build());
+                            .setUser(user.get())
+                            .build());
         observer.onCompleted();
     }
 }
 
 class StatusCodesClient {
-
+    
     void demo() throws Exception {
         // CLIENT: switch on the code to decide what to do about it.
         try {
@@ -45,8 +45,8 @@ class StatusCodesClient {
                 case NOT_FOUND -> showNotFound(); // expected
                 case UNAVAILABLE -> retryWithBackoff(); // transient, sec 17
                 default -> log.error("unexpected {}: {}",
-                        e.getStatus().getCode(),
-                        e.getStatus().getDescription());
+                    e.getStatus().getCode(),
+                    e.getStatus().getDescription());
             }
         }
         // Letting an ordinary exception escape a handler hands the client

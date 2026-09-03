@@ -15,13 +15,13 @@ package com.example.scaling2.health;
 // Write an indicator only for things Actuator cannot know about:
 @Component
 class BrokerHealthIndicator implements HealthIndicator {
-
+    
     private final RabbitTemplate rabbit;
-
+    
     BrokerHealthIndicator(RabbitTemplate rabbit) {
         this.rabbit = rabbit;
     }
-
+    
     @Override
     public Health health() {
         try {
@@ -29,8 +29,8 @@ class BrokerHealthIndicator implements HealthIndicator {
             return Health.up().build();
         } catch (Exception e) {
             return Health.down()
-                    .withDetail("broker", "unreachable")
-                    .build();
+                       .withDetail("broker", "unreachable")
+                       .build();
         }
     }
 }

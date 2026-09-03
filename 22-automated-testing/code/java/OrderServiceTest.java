@@ -11,13 +11,13 @@ interface OrderRepo {
 
 @Service
 class OrderService {
-
+    
     private final OrderRepo repo; // injected, never constructed inside
-
+    
     OrderService(OrderRepo repo) {
         this.repo = repo;
     }
-
+    
     void place(Order order) {
         if (order.total() <= 0) { // pure logic, easy to test
             throw new IllegalArgumentException("invalid total");
@@ -27,23 +27,23 @@ class OrderService {
 }
 
 class OrderServiceTest {
-
+    
+    @Test
+    void rejectsANonPositiveTotal() {
+        OrderService service = new OrderService(new InMemoryOrderRepo());
+        
+        assertThatThrownBy(() -> service.place(new Order(0)))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+    
     // A FAKE: a real working implementation, just not the production one.
     static final class InMemoryOrderRepo implements OrderRepo {
         final List<Order> saved = new ArrayList<>();
-
+        
         @Override
         public void save(Order order) {
             saved.add(order);
         }
-    }
-
-    @Test
-    void rejectsANonPositiveTotal() {
-        OrderService service = new OrderService(new InMemoryOrderRepo());
-
-        assertThatThrownBy(() -> service.place(new Order(0)))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 }
 // In production Spring injects the JPA repository instead. Same class,

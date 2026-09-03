@@ -37,7 +37,7 @@ package com.example.observability.logging;
 
 @Service
 class TodoService {
-
+    
     private static final Logger log = LoggerFactory.getLogger(TodoService.class);
 }
 

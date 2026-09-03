@@ -5,11 +5,11 @@
 package com.example.concurrency.locks;
 
 final class Counter {
-
+    
     public static void main(String[] args) throws Exception {
-        int[] counter = { 0 };
+        int[] counter = {0};
         ReentrantLock lock = new ReentrantLock();
-
+        
         // close() waits for every submitted task to finish, so the
         // try-with-resources block is the join.
         try (ExecutorService pool = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -24,7 +24,7 @@ final class Counter {
                 });
             }
         }
-
+        
         System.out.println(counter[0]); // always 1000
     }
 }
@@ -33,7 +33,7 @@ final class Counter {
 // atomic does the same read-modify-write as one CPU instruction,
 // with no thread ever waiting:
 final class Counters {
-
+    
     void demo() {
         AtomicInteger hits = new AtomicInteger();
         hits.incrementAndGet();

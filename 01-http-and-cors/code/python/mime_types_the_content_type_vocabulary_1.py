@@ -3,9 +3,11 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+
 class Note(BaseModel):
     title: str
     done: bool = False
+
 
 @app.post("/api/v1/notes", status_code=status.HTTP_201_CREATED)
 def create_note(note: Note, response: Response):

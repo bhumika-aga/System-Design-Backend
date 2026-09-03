@@ -9,21 +9,21 @@ package com.example.layers.service;
 // is the point -- a scheduled job could call the same method.
 @Service
 class BookService {
-
+    
     private final BookRepository repository;
     private final Mailer mailer;
-
+    
     BookService(BookRepository repository, Mailer mailer) {
         this.repository = repository;
         this.mailer = mailer;
     }
-
+    
     List<Book> list(String sort) {
         // Orchestration: ask the repository for what it needs.
         return repository.findAll(Sort.by(sort));
         // could also enrich, merge other repositories, notify...
     }
-
+    
     // A service method that touches no database at all is still a
     // perfectly good service method.
     void notifyOwner(String email) {

@@ -11,25 +11,25 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 class UserLookupController {
-
+    
     @GetMapping("/users/{id}")
     User get(@PathVariable String id,
-            @AuthenticationPrincipal AppUser caller) {
-
+             @AuthenticationPrincipal AppUser caller) {
+        
         if (caller == null) { // 401: who are you?
             throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED, "login required");
+                HttpStatus.UNAUTHORIZED, "login required");
         }
-
+        
         User user = users.findById(id).orElseThrow( // 404: no such thing
-                () -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "no such user"));
-
+            () -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "no such user"));
+        
         if (!user.visibleTo(caller)) { // 403: you, specifically, may not
             throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN, "forbidden");
+                HttpStatus.FORBIDDEN, "forbidden");
         }
-
+        
         return user; // 200
     }
 }

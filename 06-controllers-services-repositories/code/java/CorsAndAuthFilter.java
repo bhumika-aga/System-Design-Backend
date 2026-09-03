@@ -7,11 +7,11 @@ package com.example.layers.filter;
 // CORS is configuration, not a filter you write by hand.
 @Configuration
 class CorsConfig implements WebMvcConfigurer {
-
+    
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://app.example.com");
+            .allowedOrigins("https://app.example.com");
     }
 }
 
@@ -20,33 +20,33 @@ class CorsConfig implements WebMvcConfigurer {
 // not a bag of loose request attributes.
 @Component
 class AuthFilter extends OncePerRequestFilter {
-
+    
     private final TokenVerifier tokens;
-
+    
     AuthFilter(TokenVerifier tokens) {
         this.tokens = tokens;
     }
-
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain chain)
-            throws ServletException, IOException {
-
+                                    HttpServletResponse response,
+                                    FilterChain chain)
+        throws ServletException, IOException {
+        
         try {
             AppUser user = tokens.verify(
-                    request.getHeader(HttpHeaders.AUTHORIZATION));
-
+                request.getHeader(HttpHeaders.AUTHORIZATION));
+            
             var authentication = new UsernamePasswordAuthenticationToken(
-                    user, null, user.authorities());
+                user, null, user.authorities());
             SecurityContextHolder.getContext()
-                    .setAuthentication(authentication);
-
+                .setAuthentication(authentication);
+            
         } catch (BadCredentialsException e) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return; // 401, and stop
         }
-
+        
         chain.doFilter(request, response);
     }
 }

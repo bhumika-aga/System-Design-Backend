@@ -6,7 +6,7 @@ package com.example.validation.gate;
 
 // ---- schema (the gate) ----
 record CreateBook(
-        @NotBlank(message = "is required") @Size(min = 5, max = 100) String name) {
+    @NotBlank(message = "is required") @Size(min = 5, max = 100) String name) {
 }
 
 record Book(Long id, String name) {
@@ -16,13 +16,13 @@ record Book(Long id, String name) {
 @RestController
 @RequestMapping("/api/books")
 class BookController {
-
+    
     private final BookService books;
-
+    
     BookController(BookService books) {
         this.books = books;
     }
-
+    
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     Book create(@Valid @RequestBody CreateBook body) {
@@ -37,13 +37,13 @@ class BookController {
 // ---- SERVICE: business logic, trusting its input ----
 @Service
 class BookService {
-
+    
     private final BookRepository repository;
-
+    
     BookService(BookRepository repository) {
         this.repository = repository;
     }
-
+    
     Book create(String name) {
         return repository.save(new Book(null, name));
     }

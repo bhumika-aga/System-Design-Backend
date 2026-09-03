@@ -6,14 +6,14 @@ package com.example.grpc.streaming;
 
 @GrpcService
 class ServerStreamingServer extends UserServiceGrpc.UserServiceImplBase {
-
+    
     // proto: rpc ListUsers(ListUsersRequest) returns (stream User);
-
+    
     // ===== SERVER: onNext repeatedly, then onCompleted once =====
     @Override
     public void listUsers(ListUsersRequest request,
-            StreamObserver<User> responseObserver) {
-
+                          StreamObserver<User> responseObserver) {
+        
         for (User u : queryUsers(request.getFilter())) {
             responseObserver.onNext(u); // push one message down
         }
@@ -22,16 +22,16 @@ class ServerStreamingServer extends UserServiceGrpc.UserServiceImplBase {
 }
 
 class ServerStreamingClient {
-
+    
     // ===== CLIENT: the blocking stub hands back an Iterator =====
     void listUsers(UserServiceGrpc.UserServiceBlockingStub stub) {
-
+        
         Iterator<User> users = stub
-                .withDeadlineAfter(10, TimeUnit.SECONDS)
-                .listUsers(ListUsersRequest.newBuilder()
-                        .setFilter("active")
-                        .build());
-
+                                   .withDeadlineAfter(10, TimeUnit.SECONDS)
+                                   .listUsers(ListUsersRequest.newBuilder()
+                                                  .setFilter("active")
+                                                  .build());
+        
         while (users.hasNext()) {
             log.info("user: {}", users.next().getFullName());
         }

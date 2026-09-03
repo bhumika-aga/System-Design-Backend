@@ -6,23 +6,23 @@ package com.example.rest.idempotency;
 
 @RestController
 class IdempotentPaymentController {
-
+    
     @PostMapping("/payments")
     ResponseEntity<Payment> create(
-            @RequestHeader("Idempotency-Key") String key, // client UUID
-            @RequestBody ChargeRequest body) {
-
+        @RequestHeader("Idempotency-Key") String key, // client UUID
+        @RequestBody ChargeRequest body) {
+        
         // Seen this exact request already? Return the SAME result rather
         // than charging the card a second time.
         Optional<StoredResult> prior = idempotency.find(key);
         if (prior.isPresent()) {
             return ResponseEntity.status(prior.get().status())
-                    .body(prior.get().payment());
+                       .body(prior.get().payment());
         }
-
+        
         Payment payment = payments.charge(body.amount()); // side effect
         idempotency.save(key, HttpStatus.CREATED.value(), payment);
-
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(payment);
     }
     // The key must come from the client, not the server: it has to

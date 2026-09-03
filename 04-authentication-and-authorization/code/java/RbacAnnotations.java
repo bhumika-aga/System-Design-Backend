@@ -11,13 +11,13 @@ class MethodSecurityConfig {
 
 @RestController
 class AdminController {
-
+    
     @PreAuthorize("hasRole('ADMIN')") // 403 for everyone else
     @GetMapping("/admin/deadzone")
     String deadZone() {
         return "admins only";
     }
-
+    
     @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     @PostMapping("/notes/{id}/publish")
     void publish(@PathVariable String id) {

@@ -5,14 +5,14 @@
 package com.example.validation.crossfield;
 
 record Signup(
-        @NotBlank @Size(min = 8, message = "must be at least 8 characters") String password,
-
-        @NotBlank String passwordConfirmation,
-
-        @NotNull Boolean married,
-
-        String partner) { // required only when married
-
+    @NotBlank @Size(min = 8, message = "must be at least 8 characters") String password,
+    
+    @NotBlank String passwordConfirmation,
+    
+    @NotNull Boolean married,
+    
+    String partner) { // required only when married
+    
     // A field annotation can only ever see its own value, so a
     // cross-field rule needs somewhere else to live. @AssertTrue on a
     // derived getter is the simplest home: Jakarta calls it like any
@@ -21,10 +21,10 @@ record Signup(
     boolean isPasswordConfirmed() {
         return password != null && password.equals(passwordConfirmation);
     }
-
+    
     @AssertTrue(message = "partner is required when married is true")
     boolean isPartnerPresentWhenMarried() {
         return !Boolean.TRUE.equals(married)
-                || (partner != null && !partner.isBlank());
+                   || (partner != null && !partner.isBlank());
     }
 }

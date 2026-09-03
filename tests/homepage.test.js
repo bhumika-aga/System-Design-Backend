@@ -10,8 +10,8 @@ assert.match(homepage, /\.btn-contribute:hover\s*\{[^}]*color:\s*#fff\s*;[^}]*\}
 assert.doesNotMatch(enhancements, /a:hover\s*\{[^}]*color:\s*[^;}]+!important[^}]*\}/);
 
 assert.match(
-  homepage,
-  /href="https:\/\/github\.com\/bhumika-aga\/System-Design-Backend"/,
+    homepage,
+    /href="https:\/\/github\.com\/bhumika-aga\/System-Design-Backend"/,
 );
 
 console.log('homepage checks passed');

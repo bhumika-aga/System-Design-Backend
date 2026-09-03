@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, Response
+import secrets
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-import secrets
+from fastapi import FastAPI, HTTPException, Response
 
 ph = PasswordHasher(time_cost=1, memory_cost=65536, parallelism=4)
+
 
 @app.post("/login")
 async def login(email: str, password: str, response: Response):

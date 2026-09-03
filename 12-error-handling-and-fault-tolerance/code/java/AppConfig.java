@@ -10,16 +10,16 @@ package com.example.errors.config;
 @ConfigurationProperties(prefix = "app")
 @Validated
 record AppConfig(
-        @NotBlank String databaseUrl,
-        @NotBlank String openaiApiKey,
-        @NotBlank String jwtSecret,
-        @NotBlank String resendApiKey) {
+    @NotBlank String databaseUrl,
+    @NotBlank String openaiApiKey,
+    @NotBlank String jwtSecret,
+    @NotBlank String resendApiKey) {
 }
 
 @SpringBootApplication
 @EnableConfigurationProperties(AppConfig.class)
 class Application {
-
+    
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }

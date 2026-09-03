@@ -1,1 +1,5 @@
-{ "email": "randomstring", "phone": 1234567, "date": "2025-11-05" }
+{
+  "email": "randomstring",
+  "phone": 1234567,
+  "date": "2025-11-05"
+}

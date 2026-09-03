@@ -8,23 +8,23 @@ package com.example.layers.filter;
 // chain.doFilter(...) is next(): pass execution along the chain.
 @Component
 class LoggingFilter extends OncePerRequestFilter {
-
+    
     private static final Logger log = LoggerFactory.getLogger(LoggingFilter.class);
-
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain chain)
-            throws ServletException, IOException {
-
+                                    HttpServletResponse response,
+                                    FilterChain chain)
+        throws ServletException, IOException {
+        
         log.info("{} {}", request.getMethod(), request.getRequestURI());
-
+        
         // EARLY EXIT: short-circuit without ever calling the chain.
         if ("yes".equals(request.getHeader("X-Blocked"))) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return; // the request stops here
         }
-
+        
         chain.doFilter(request, response); // === next() ===
     }
 }

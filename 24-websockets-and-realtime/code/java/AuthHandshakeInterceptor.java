@@ -8,20 +8,20 @@ package com.example.websockets;
 // handshake is a normal HTTP error, which the client can actually read.
 @Component
 class AuthHandshakeInterceptor implements HandshakeInterceptor {
-
+    
     private final JwtVerifier jwt;
-
+    
     AuthHandshakeInterceptor(JwtVerifier jwt) {
         this.jwt = jwt;
     }
-
+    
     @Override
     public boolean beforeHandshake(ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler handler,
-            Map<String, Object> attributes) {
+                                   ServerHttpResponse response,
+                                   WebSocketHandler handler,
+                                   Map<String, Object> attributes) {
         String token = UriComponentsBuilder.fromUri(request.getURI())
-                .build().getQueryParams().getFirst("token");
+                           .build().getQueryParams().getFirst("token");
         try {
             // Attach the identity. Every later frame on this session can
             // read it back from the session attributes.
@@ -32,11 +32,11 @@ class AuthHandshakeInterceptor implements HandshakeInterceptor {
             return false;
         }
     }
-
+    
     @Override
     public void afterHandshake(ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler handler, Exception ex) {
+                               ServerHttpResponse response,
+                               WebSocketHandler handler, Exception ex) {
     }
 }
 // Wire it in: registry.addHandler(handler, "/ws")

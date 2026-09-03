@@ -10,34 +10,34 @@ record ProductHit(long id, String name, String description, double rank) {
 
 @RestController
 class SearchController {
-
+    
     // plainto_tsquery converts plain text safely: no special characters
     // to escape. websearch_to_tsquery is the richer sibling, supporting
     // AND / OR / -term the way a search box user expects.
     private static final String SEARCH_SQL = """
-            SELECT id, name, description,
-                   ts_rank(search_vec,
-                           plainto_tsquery('english', :q)) AS rank
-            FROM   products
-            WHERE  search_vec @@ plainto_tsquery('english', :q)
-            ORDER  BY rank DESC
-            LIMIT  20
-            """;
-
+        SELECT id, name, description,
+               ts_rank(search_vec,
+                       plainto_tsquery('english', :q)) AS rank
+        FROM   products
+        WHERE  search_vec @@ plainto_tsquery('english', :q)
+        ORDER  BY rank DESC
+        LIMIT  20
+        """;
+    
     private final JdbcClient jdbc;
-
+    
     SearchController(JdbcClient jdbc) {
         this.jdbc = jdbc;
     }
-
+    
     @GetMapping("/search")
     List<ProductHit> search(
-            @RequestParam("q") @NotBlank(message = "missing query param q") String query) {
-
+        @RequestParam("q") @NotBlank(message = "missing query param q") String query) {
+        
         return jdbc.sql(SEARCH_SQL)
-                .param("q", query) // bound, so a quote is just a quote
-                .query(ProductHit.class)
-                .list();
+                   .param("q", query) // bound, so a quote is just a quote
+                   .query(ProductHit.class)
+                   .list();
     }
 }
 // The search_vec column and its GIN index are the previous snippet.

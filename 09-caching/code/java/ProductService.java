@@ -9,13 +9,13 @@ package com.example.caching.cache;
 //   @Cacheable -> cache-aside (lazy)    @CachePut -> write-through
 @Service
 class ProductService {
-
+    
     private final ProductRepository products;
-
+    
     ProductService(ProductRepository products) {
         this.products = products;
     }
-
+    
     // CACHE-ASIDE. Spring checks the cache first; on a HIT the method
     // body never runs at all. On a MISS the body runs and whatever it
     // returns is stored under "product::<id>".
@@ -24,21 +24,21 @@ class ProductService {
         // reached only on a miss -- this is the expensive path
         return products.findById(productId).orElseThrow();
     }
-
+    
     // WRITE-THROUGH. The body ALWAYS runs, and its result replaces the
     // cached value, so the database and the cache cannot drift apart.
     @CachePut(cacheNames = "product", key = "#product.id()")
     public Product update(Product product) {
         return products.save(product);
     }
-
+    
     // The third of the family: drop the entry and let the next read
     // repopulate it.
     @CacheEvict(cacheNames = "product", key = "#productId")
     public void delete(String productId) {
         products.deleteById(productId);
     }
-
+    
     // The TTL is configuration, not code. application.yml:
     // spring:
     // cache:
@@ -46,22 +46,22 @@ class ProductService {
     // redis:
     // time-to-live: 1h
     // and @EnableCaching on a @Configuration class switches it all on.
-
+    
     // The same steps written out, when you want to see the mechanism
     // rather than let the proxy do it:
     Product getExplicitly(String id) throws JsonProcessingException {
         String key = "product:" + id;
-
+        
         String cached = redis.opsForValue().get(key); // 1. try the cache
         if (cached != null) {
             return mapper.readValue(cached, Product.class);
         }
-
+        
         Product product = products.findById(id).orElseThrow(); // 2. miss
-
+        
         redis.opsForValue().set(key, // 3. store with TTL
-                mapper.writeValueAsString(product), Duration.ofHours(1));
-
+            mapper.writeValueAsString(product), Duration.ofHours(1));
+        
         return product;
     }
     // Careful: calling get() from another method of THIS class bypasses

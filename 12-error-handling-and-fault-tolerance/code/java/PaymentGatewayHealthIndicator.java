@@ -8,13 +8,13 @@ package com.example.errors.health;
 // indicator only for what it cannot know about.
 @Component
 class PaymentGatewayHealthIndicator implements HealthIndicator {
-
+    
     private final RestClient payments;
-
+    
     PaymentGatewayHealthIndicator(RestClient payments) {
         this.payments = payments;
     }
-
+    
     @Override
     public Health health() {
         try {
@@ -22,8 +22,8 @@ class PaymentGatewayHealthIndicator implements HealthIndicator {
             return Health.up().build();
         } catch (Exception e) {
             return Health.down()
-                    .withDetail("error", e.getMessage())
-                    .build();
+                       .withDetail("error", e.getMessage())
+                       .build();
         }
     }
 }

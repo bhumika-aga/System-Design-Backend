@@ -1,6 +1,6 @@
 EXPLAIN ANALYZE
 SELECT id, name
-FROM  products
+FROM products
 WHERE name ILIKE '%laptop%';
 
 -- Output (simplified)

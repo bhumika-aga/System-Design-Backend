@@ -1,7 +1,7 @@
 name: ci-cd
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build-test-deploy:

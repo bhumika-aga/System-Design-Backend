@@ -1,1 +1,6 @@
-{ "stringField": "x", "numberField": "x", "arrayField": "x", "boolField": "x" }
+{
+  "stringField": "x",
+  "numberField": "x",
+  "arrayField": "x",
+  "boolField": "x"
+}

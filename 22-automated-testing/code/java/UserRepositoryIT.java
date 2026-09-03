@@ -12,12 +12,14 @@ package com.example.testing;
 @SpringBootTest
 @Testcontainers
 class UserRepositoryIT {
-
+    
     // A REAL Postgres in a throwaway container, started once per class and
     // torn down automatically when it finishes.
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16");
-
+    @Autowired
+    UserRepository repo; // Flyway applies the production schema
+    
     // Point Spring at the container instead of the usual datasource.
     @DynamicPropertySource
     static void datasource(DynamicPropertyRegistry registry) {
@@ -25,17 +27,14 @@ class UserRepositoryIT {
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
     }
-
-    @Autowired
-    UserRepository repo; // Flyway applies the production schema
-
+    
     @Test
     void savesAndReadsBackThroughRealSql() {
         repo.save(new User("u1", "a@x.com")); // the REAL query path
-
+        
         assertThat(repo.findById("u1"))
-                .get()
-                .extracting(User::email)
-                .isEqualTo("a@x.com");
+            .get()
+            .extracting(User::email)
+            .isEqualTo("a@x.com");
     }
 }

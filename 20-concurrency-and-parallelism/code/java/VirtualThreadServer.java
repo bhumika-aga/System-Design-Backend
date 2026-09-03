@@ -13,14 +13,14 @@ package com.example.concurrency.vthreads;
 //
 // Underneath, that is this loop:
 final class VirtualThreadServer {
-
+    
     public static void main(String[] args) throws Exception {
         Executor executor = Executors.newVirtualThreadPerTaskExecutor();
-
+        
         try (ServerSocket listener = new ServerSocket(8080)) {
             while (true) {
                 Socket conn = listener.accept(); // wait for a connection
-
+                
                 // A NEW virtual thread for every connection. A million of
                 // these is ordinary; a million OS threads is impossible.
                 executor.execute(() -> handle(conn));

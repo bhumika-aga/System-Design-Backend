@@ -9,13 +9,13 @@ package com.example.validation.pipeline;
 //   the type  -> the type check (String)
 //   @Size     -> the constraint check
 record CreateBook(
-        @NotBlank(message = "is required") @Size(min = 5, max = 100, message = "must be 5 to 100 characters") String name) {
+    @NotBlank(message = "is required") @Size(min = 5, max = 100, message = "must be 5 to 100 characters") String name) {
 }
 
 @RestController
 @RequestMapping("/api/books")
 class BookController {
-
+    
     // @Valid runs the whole pipeline before the method body starts.
     // A JSON number for `name` never even reaches validation: Jackson
     // fails the type check while parsing, and Spring answers 400.
@@ -30,17 +30,17 @@ class BookController {
 // controller formatting its own.
 @RestControllerAdvice
 class ValidationErrorHandler {
-
+    
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     Map<String, List<String>> onInvalid(
-            MethodArgumentNotValidException e) {
-
+        MethodArgumentNotValidException e) {
+        
         List<String> messages = e.getBindingResult().getFieldErrors()
-                .stream()
-                .map(f -> f.getField() + ": " + f.getDefaultMessage())
-                .toList();
-
+                                    .stream()
+                                    .map(f -> f.getField() + ": " + f.getDefaultMessage())
+                                    .toList();
+        
         return Map.of("errors", messages);
     }
 }

@@ -5,6 +5,8 @@ def create_payment(body: dict, idempotency_key: str = Header(...)):
     if prior is not None:
         return JSONResponse(status_code=prior["status"], content=prior["body"])
 
-    payment = charge(body["amount"])               # the real, non-idempotent side effect
-    idem_store.save(idempotency_key, 201, payment) # remember it, keyed by the idempotency key
+    # the real, non-idempotent side effect
+    payment = charge(body["amount"])
+    # remember it, keyed by the idempotency key
+    idem_store.save(idempotency_key, 201, payment)
     return payment

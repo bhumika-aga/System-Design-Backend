@@ -7,15 +7,12 @@ package com.example.validation.syntax;
 // Syntax asks "is it shaped like an email, a phone, a date?"
 // Most of that is a built-in annotation; the rest is one regex.
 record Contact(
-                @NotBlank @Email(message = "invalid email format") String email,
-
-                @NotBlank @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "invalid phone number format") String phone, // optional
-                                                                                                                        // +,
-                                                                                                                        // then
-                                                                                                                        // 7-15
-                                                                                                                        // digits
-
-                @NotNull LocalDate dateOfBirth) {
+    @NotBlank @Email(message = "invalid email format") String email,
+    
+    // optional +, then 7-15 digits
+    @NotBlank @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "invalid phone number format") String phone,
+    
+    @NotNull LocalDate dateOfBirth) {
 } // the TYPE does the date check
 
 // "randomstring" -> email: invalid email format

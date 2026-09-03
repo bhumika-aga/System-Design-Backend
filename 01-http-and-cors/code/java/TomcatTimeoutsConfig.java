@@ -7,11 +7,10 @@ package com.example.http;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @RestController
 class TomcatTimeoutsConfig {
-
+    
     // These are server knobs, so they belong in application.yml:
     //
     // server:
@@ -24,7 +23,7 @@ class TomcatTimeoutsConfig {
     //
     // connection-timeout is the Slowloris defense: it caps how long a client
     // may take to finish sending its headers.
-
+    
     // When you need the programmatic hook instead:
     @Bean
     WebServerFactoryCustomizer<TomcatServletWebServerFactory> timeouts() {

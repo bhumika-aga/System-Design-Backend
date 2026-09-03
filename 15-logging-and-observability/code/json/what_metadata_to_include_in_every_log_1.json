@@ -5,8 +5,10 @@
   "message": "database query failed",
   "service": "todo-api",
   "environment": "production",
-  "request_id": "req_01J2KXYZ", // unique per request
-  "trace_id": "abc123def456", // links to distributed trace
+  "request_id": "req_01J2KXYZ",
+  // unique per request
+  "trace_id": "abc123def456",
+  // links to distributed trace
   "span_id": "span_789",
   "user_id": "usr_01J2K",
   "method": "POST",

@@ -7,9 +7,9 @@ package com.example.validation.semantics;
 // Type and syntax cannot express "not in the future". Semantics
 // need real logic checked against the real world -- here, the clock.
 record Profile(
-                @NotNull @Past(message = "date of birth cannot be in the future") LocalDate dateOfBirth,
-
-                @NotNull @Min(value = 1, message = "must be at least 1") @Max(value = 120, message = "must be 120 or less") Integer age) {
+    @NotNull @Past(message = "date of birth cannot be in the future") LocalDate dateOfBirth,
+    
+    @NotNull @Min(value = 1, message = "must be at least 1") @Max(value = 120, message = "must be 120 or less") Integer age) {
 }
 
 // {"dateOfBirth":"2026-06-12"} -> cannot be in the future

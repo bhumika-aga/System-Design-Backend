@@ -10,42 +10,42 @@ package com.example.config;
 @ConfigurationProperties(prefix = "app")
 @Validated
 record AppConfig(
-
-        // Application settings, with defaults in application.yml
-        @Min(1) @Max(65535) int port,
-
-        @Pattern(regexp = "debug|info|warn|error") String logLevel,
-
-        @NotNull Environment env, // an enum: invalid values die here
-
-        @Valid @NotNull Database database,
-        @Valid @NotNull External external,
-        @Valid @NotNull Features features) {
-
+    
+    // Application settings, with defaults in application.yml
+    @Min(1) @Max(65535) int port,
+    
+    @Pattern(regexp = "debug|info|warn|error") String logLevel,
+    
+    @NotNull Environment env, // an enum: invalid values die here
+    
+    @Valid @NotNull Database database,
+    @Valid @NotNull External external,
+    @Valid @NotNull Features features) {
+    
     enum Environment {
         DEVELOPMENT, STAGING, PRODUCTION
     }
-
+    
     // Nesting mirrors the YAML instead of flattening it into
     // DB_HOST, DB_PORT, DB_USER... one prefix per concern.
     record Database(
-            @NotBlank String host,
-            @Min(1) @Max(65535) int port,
-            @NotBlank String user,
-            @NotBlank String password,
-            @NotBlank String name,
-            @Min(1) int poolSize) {
-
+        @NotBlank String host,
+        @Min(1) @Max(65535) int port,
+        @NotBlank String user,
+        @NotBlank String password,
+        @NotBlank String name,
+        @Min(1) int poolSize) {
+        
         // Derived, not stored: one place builds the URL.
         String url() {
             return "postgres://%s:%s@%s:%d/%s"
-                    .formatted(user, password, host, port, name);
+                       .formatted(user, password, host, port, name);
         }
     }
-
+    
     record External(@NotBlank String stripeApiKey) {
     }
-
+    
     record Features(boolean newCheckoutEnabled) {
     }
 }
@@ -53,7 +53,7 @@ record AppConfig(
 @SpringBootApplication
 @EnableConfigurationProperties(AppConfig.class)
 class Application {
-
+    
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }

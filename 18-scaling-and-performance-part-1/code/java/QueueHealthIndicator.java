@@ -9,13 +9,13 @@ package com.example.scaling.health;
 // than write the endpoint:
 @Component
 class QueueHealthIndicator implements HealthIndicator {
-
+    
     private final JdbcClient jdbc;
-
+    
     QueueHealthIndicator(JdbcClient jdbc) {
         this.jdbc = jdbc;
     }
-
+    
     @Override
     public Health health() {
         try {
@@ -25,8 +25,8 @@ class QueueHealthIndicator implements HealthIndicator {
             // DOWN makes the whole endpoint return 503, which is what
             // the load balancer is watching for.
             return Health.down()
-                    .withDetail("reason", "database unreachable")
-                    .build();
+                       .withDetail("reason", "database unreachable")
+                       .build();
         }
     }
 }

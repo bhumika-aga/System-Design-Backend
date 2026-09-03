@@ -19,21 +19,21 @@ package com.example.observability.logging;
 // without being passed down as an argument.
 @Component
 class LoggingContextFilter extends OncePerRequestFilter {
-
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain chain)
-            throws ServletException, IOException {
-
+                                    HttpServletResponse response,
+                                    FilterChain chain)
+        throws ServletException, IOException {
+        
         MDC.put("requestId", UUID.randomUUID().toString());
         MDC.put("userId", currentUserId(request));
-
+        
         try {
             chain.doFilter(request, response);
         } finally {
             MDC.clear(); // the thread is pooled; leaving values set
-                         // would tag the NEXT request with them
+            // would tag the NEXT request with them
         }
     }
 }

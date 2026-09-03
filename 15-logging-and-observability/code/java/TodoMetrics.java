@@ -26,16 +26,16 @@ package com.example.observability.metrics;
 // A BUSINESS metric is the part you actually have to write.
 @Service
 class TodoMetrics {
-
+    
     private final Counter created;
-
+    
     TodoMetrics(MeterRegistry registry) {
         this.created = Counter.builder("todos_created_total")
-                .description("Todos created")
-                .tag("service", "todo-api")
-                .register(registry);
+                           .description("Todos created")
+                           .tag("service", "todo-api")
+                           .register(registry);
     }
-
+    
     void recordCreated() {
         created.increment();
     }

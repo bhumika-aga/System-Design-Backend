@@ -10,13 +10,13 @@ package com.example.validation.pagination;
 @Validated // required for parameter constraints
 @RestController
 class BookQueryController {
-
+    
     @GetMapping("/api/books")
     List<Book> list(
-            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be 1 or more") @Max(value = 499, message = "must be 499 or less") int page,
-
-            @RequestParam(defaultValue = "20") @Min(1) @Max(9999) int limit) {
-
+        @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be 1 or more") @Max(value = 499, message = "must be 499 or less") int page,
+        
+        @RequestParam(defaultValue = "20") @Min(1) @Max(9999) int limit) {
+        
         return books.page(page, limit);
     }
 }

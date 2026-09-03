@@ -7,19 +7,19 @@ package com.example.layers.controller;
 @RestController
 @RequestMapping("/api/books")
 class AuthenticatedController {
-
+    
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     Book create(@Valid @RequestBody CreateBookRequest req,
-            @AuthenticationPrincipal AppUser caller) {
-
+                @AuthenticationPrincipal AppUser caller) {
+        
         // The identity arrives as a parameter, already verified by the
         // filter. It is never read from the request body: a client can
         // put any ownerId it likes in there.
         if (caller == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-
+        
         // Persist with the SERVER-VERIFIED owner, never the client's.
         return books.create(req, caller.id());
     }

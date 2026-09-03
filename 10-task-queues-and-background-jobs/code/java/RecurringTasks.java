@@ -7,21 +7,21 @@ package com.example.tasks.scheduled;
 @Configuration
 @EnableScheduling
 class RecurringTasks {
-
+    
     private final ReportService reports;
     private final SessionService sessions;
-
+    
     RecurringTasks(ReportService reports, SessionService sessions) {
         this.reports = reports;
         this.sessions = sessions;
     }
-
+    
     // Every Sunday at midnight
     @Scheduled(cron = "0 0 0 * * SUN")
     void weeklyReport() {
         reports.generateWeekly();
     }
-
+    
     // 03:00 on the 1st of every month
     @Scheduled(cron = "0 0 3 1 * *")
     void cleanupOrphanSessions() {

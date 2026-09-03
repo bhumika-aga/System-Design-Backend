@@ -16,15 +16,15 @@ interface Notifier {
 
 @Service
 class Greeter {
-
+    
     private final UserRepo repo;
     private final Notifier notifier;
-
+    
     Greeter(UserRepo repo, Notifier notifier) {
         this.repo = repo;
         this.notifier = notifier;
     }
-
+    
     void greet(String id) {
         User u = repo.findById(id).orElseThrow(); // collaborator 1
         notifier.send(u.email(), "Hi " + u.name()); // the interaction
@@ -33,21 +33,21 @@ class Greeter {
 
 @ExtendWith(MockitoExtension.class)
 class GreeterTest {
-
+    
     @Mock
     UserRepo repo; // STUB: returns whatever we tell it to
     @Mock
     Notifier notifier; // SPY: records the calls it received
     @InjectMocks
     Greeter greeter;
-
+    
     @Test
     void sendsOneGreetingToTheUser() {
         when(repo.findById("u1")) // arrange
-                .thenReturn(Optional.of(new User("a@x.com", "Ada")));
-
+            .thenReturn(Optional.of(new User("a@x.com", "Ada")));
+        
         greeter.greet("u1"); // act
-
+        
         // Assert the INTERACTION rather than any returned state.
         verify(notifier).send("a@x.com", "Hi Ada");
         verifyNoMoreInteractions(notifier);

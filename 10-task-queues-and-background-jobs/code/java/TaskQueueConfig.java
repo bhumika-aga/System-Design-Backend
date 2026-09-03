@@ -6,33 +6,33 @@ package com.example.tasks.queue;
 
 @Configuration
 class TaskQueueConfig {
-
+    
     // The work queue, with its dead-letter queue named up front.
     @Bean
     Queue emailQueue() {
         return QueueBuilder.durable("email.send_verification")
-                .deadLetterExchange("tasks.dlx")
-                .deadLetterRoutingKey("email.send_verification.dlq")
-                .build();
+                   .deadLetterExchange("tasks.dlx")
+                   .deadLetterRoutingKey("email.send_verification.dlq")
+                   .build();
     }
-
+    
     @Bean
     Queue emailDlq() {
         return QueueBuilder.durable("email.send_verification.dlq").build();
     }
-
+    
     // JSON on the wire, so a payload stays readable in the broker UI.
     @Bean
     MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
-
+    
     // Concurrency and prefetch: the Asynq Config equivalent.
     @Bean
     SimpleRabbitListenerContainerFactory listenerFactory(
-            ConnectionFactory connectionFactory,
-            MessageConverter converter) {
-
+        ConnectionFactory connectionFactory,
+        MessageConverter converter) {
+        
         var factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(converter);

@@ -20,7 +20,7 @@ package com.example.shutdown;
 
 @SpringBootApplication
 class Application {
-
+    
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
@@ -31,29 +31,29 @@ class Application {
 // DataSource is torn down before the DataSource itself.
 @Component
 class BackgroundJobServer implements SmartLifecycle {
-
+    
     private static final Logger log = LoggerFactory.getLogger(BackgroundJobServer.class);
-
+    
     private volatile boolean running;
-
+    
     @Override
     public void start() {
         running = true;
         log.info("job server started");
     }
-
+    
     @Override
     public void stop() {
         log.info("stopping background job server...");
         drainWorkers(); // let workers finish the job in hand
         running = false;
     }
-
+    
     @Override
     public boolean isRunning() {
         return running;
     }
-
+    
     // Phase orders the lifecycle beans among themselves. The web
     // server sits at Integer.MAX_VALUE and stops FIRST, so a lower
     // phase stops after it -- which is what draining HTTP before
@@ -67,7 +67,7 @@ class BackgroundJobServer implements SmartLifecycle {
 // When there is nothing to coordinate, @PreDestroy is enough.
 @Component
 class ReportBuffer {
-
+    
     @PreDestroy
     void flush() {
         log.info("flushing pending reports before exit");

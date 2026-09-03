@@ -17,7 +17,7 @@ package com.example.scaling.profiling;
 // You can also drive a recording from code, which is useful in a
 // benchmark or a test that reproduces the slow path:
 final class CpuProfile {
-
+    
     static void record(Path out, Duration window) throws Exception {
         Configuration profile = Configuration.getConfiguration("profile");
         try (Recording recording = new Recording(profile)) {

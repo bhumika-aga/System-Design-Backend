@@ -27,28 +27,28 @@ package com.example.observability.tracing;
 // What you DO write is the extra business context on that span.
 @Component
 class RequestContextFilter extends OncePerRequestFilter {
-
+    
     private final Tracer tracer;
-
+    
     RequestContextFilter(Tracer tracer) {
         this.tracer = tracer;
     }
-
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain chain)
-            throws ServletException, IOException {
-
+                                    HttpServletResponse response,
+                                    FilterChain chain)
+        throws ServletException, IOException {
+        
         Span span = tracer.currentSpan();
         if (span != null) {
             span.tag("http.user_agent",
-                    String.valueOf(request.getHeader("User-Agent")));
+                String.valueOf(request.getHeader("User-Agent")));
             span.tag("user.id", currentUserId(request));
             // the trace id on every log line for this request
             MDC.put("traceId", span.context().traceId());
         }
-
+        
         try {
             chain.doFilter(request, response);
         } finally {

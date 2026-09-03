@@ -6,7 +6,7 @@ package com.example.testing;
 
 // The unit: pure logic, no I/O, trivially testable.
 final class Passwords {
-
+    
     static boolean isStrong(String p) {
         if (p.length() < 8) {
             return false;
@@ -18,12 +18,12 @@ final class Passwords {
 }
 
 class PasswordsTest {
-
+    
     @Test
     void rejectsPasswordsUnderEightCharacters() {
         assertThat(Passwords.isStrong("short1A")).isFalse();
     }
-
+    
     @Test
     void acceptsAPasswordMeetingEveryRule() {
         assertThat(Passwords.isStrong("longEnough9")).isTrue();

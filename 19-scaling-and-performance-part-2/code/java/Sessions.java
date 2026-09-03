@@ -16,22 +16,22 @@ package com.example.scaling2.sessions;
 // When you want your own keys instead of the servlet session:
 @Service
 class Sessions {
-
+    
     private final StringRedisTemplate redis;
-
+    
     Sessions(StringRedisTemplate redis) {
         this.redis = redis;
     }
-
+    
     void store(String sessionId, String userId) {
         redis.opsForValue().set("session:" + sessionId, userId,
-                Duration.ofHours(24));
+            Duration.ofHours(24));
     }
-
+    
     Optional<String> lookup(String sessionId) {
         // Every instance reads the same Redis, so it does not matter
         // which one the load balancer happened to pick.
         return Optional.ofNullable(
-                redis.opsForValue().get("session:" + sessionId));
+            redis.opsForValue().get("session:" + sessionId));
     }
 }

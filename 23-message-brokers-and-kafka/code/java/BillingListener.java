@@ -15,14 +15,14 @@ package com.example.kafka;
 //     ack-mode: manual             # the listener decides when to commit
 @Component
 class BillingListener {
-
+    
     @KafkaListener(topics = "orders")
     void onOrder(ConsumerRecord<String, String> record,
-            Acknowledgment ack) {
-
+                 Acknowledgment ack) {
+        
         process(record.value()); // do the work FIRST...
         ack.acknowledge(); // ...THEN commit the offset
-
+        
         // Crash between those two lines and the record is redelivered.
         // That is at-least-once, which is why process() has to be
         // idempotent (sec 9).

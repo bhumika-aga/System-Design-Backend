@@ -6,41 +6,41 @@ package com.example.tasks.sqs;
 
 @Component
 class SqsTaskQueue {
-
+    
     // AWS SDK v2 for Java: the same SDK and the same concepts.
-
+    
     // -- PRODUCER ------------------------------------------
     void enqueueEmailTask(SqsClient sqs, String queueUrl, EmailPayload payload)
-            throws JsonProcessingException {
-
+        throws JsonProcessingException {
+        
         sqs.sendMessage(SendMessageRequest.builder()
-                .queueUrl(queueUrl)
-                .messageBody(mapper.writeValueAsString(payload))
-                // For a FIFO queue add:
-                // .messageGroupId("email-group")
-                // .messageDeduplicationId(payload.userId())
-                .build());
+                            .queueUrl(queueUrl)
+                            .messageBody(mapper.writeValueAsString(payload))
+                            // For a FIFO queue add:
+                            // .messageGroupId("email-group")
+                            // .messageDeduplicationId(payload.userId())
+                            .build());
     }
-
+    
     // -- CONSUMER ------------------------------------------
     void pollQueue(SqsClient sqs, String queueUrl) {
         while (true) {
             ReceiveMessageResponse result = sqs.receiveMessage(
-                    ReceiveMessageRequest.builder()
-                            .queueUrl(queueUrl)
-                            .maxNumberOfMessages(10) // batch up to 10
-                            .waitTimeSeconds(20) // long-poll
-                            .visibilityTimeout(60) // 60s before redelivery
-                            .build());
-
+                ReceiveMessageRequest.builder()
+                    .queueUrl(queueUrl)
+                    .maxNumberOfMessages(10) // batch up to 10
+                    .waitTimeSeconds(20) // long-poll
+                    .visibilityTimeout(60) // 60s before redelivery
+                    .build());
+            
             for (Message msg : result.messages()) {
                 try {
                     process(msg);
                     // ACK: delete only once the work has succeeded
                     sqs.deleteMessage(DeleteMessageRequest.builder()
-                            .queueUrl(queueUrl)
-                            .receiptHandle(msg.receiptHandle())
-                            .build());
+                                          .queueUrl(queueUrl)
+                                          .receiptHandle(msg.receiptHandle())
+                                          .build());
                 } catch (Exception e) {
                     // Do nothing. The visibility timeout lapses and SQS
                     // hands the message to another consumer.

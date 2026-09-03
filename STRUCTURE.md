@@ -7,8 +7,9 @@ search, notes and code behaviour with no extra work.
 ## The shell
 
 ```html
+
 <html>
-  <head>
+<head>
     <title>Caching / Chapter 09 / System Design - Backend</title>
     <meta name="description" content="Chapter 09 of System Design - Backend: ...">
     <!-- shared, in this order -->
@@ -19,22 +20,22 @@ search, notes and code behaviour with no extra work.
     <link rel="stylesheet" href="../../assets/theme.css">
     <script src="../../assets/theme.js"></script>   <!-- no defer: pre-paint -->
     <style> /* only what is unique to this chapter */ </style>
-  </head>
-  <body>
-    <div class="bfp-shell">
-      <aside class="bfp-toc"> … <a class="bfp-toc-link" href="#s1"> … </aside>
-      <main class="bfp-content">
-        <header> kicker · h1 · lede · meta pills </header>
-        <section id="s1"> … </section>
+</head>
+<body>
+<div class="bfp-shell">
+    <aside class="bfp-toc"> … <a class="bfp-toc-link" href="#s1"> …</aside>
+    <main class="bfp-content">
+        <header> kicker · h1 · lede · meta pills</header>
+        <section id="s1"> …</section>
         <footer class="bfp-footer">System Design - Backend / Chapter NN / …</footer>
-      </main>
-    </div>
-    <nav class="chapter-nav" id="chapterNav"> prev · indicator · next </nav>
-    <script>hljs.highlightAll();</script>
-    <script src="../../assets/copy-button.js"></script>
-    <script src="../../assets/enhancements.js"></script>
-    <script src="../../assets/shell.js"></script>
-  </body>
+    </main>
+</div>
+<nav class="chapter-nav" id="chapterNav"> prev · indicator · next</nav>
+<script>hljs.highlightAll();</script>
+<script src="../../assets/copy-button.js"></script>
+<script src="../../assets/enhancements.js"></script>
+<script src="../../assets/shell.js"></script>
+</body>
 </html>
 ```
 

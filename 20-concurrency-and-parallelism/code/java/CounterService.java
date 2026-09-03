@@ -8,11 +8,11 @@ package com.example.concurrency.locks;
 // sole ownership of the state, and let everyone else send it
 // messages. A BlockingQueue is the pipe between them.
 final class CounterService {
-
+    
     public static void main(String[] args) throws Exception {
         BlockingQueue<Integer> queue = new ArrayBlockingQueue<>(100);
         CompletableFuture<Integer> total = new CompletableFuture<>();
-
+        
         Thread owner = Thread.ofVirtual().start(() -> {
             int counter = 0; // ONLY this thread touches it
             try {
@@ -24,13 +24,13 @@ final class CounterService {
             }
             total.complete(counter);
         });
-
+        
         // 1000 senders. None of them can see `counter`, so none of
         // them can corrupt it.
         for (int i = 0; i < 1000; i++) {
             queue.put(1);
         }
-
+        
         System.out.println(total.get()); // 1000, and no lock anywhere
         owner.join();
     }

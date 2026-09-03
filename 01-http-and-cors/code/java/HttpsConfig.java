@@ -5,13 +5,12 @@
 package com.example.http;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 @RestController
 class HttpsConfig {
-
+    
     // Serve HTTPS directly from a keystore.
     // src/main/resources/application.yml:
     //
@@ -22,7 +21,7 @@ class HttpsConfig {
     // key-store-type: PKCS12
     // key-store-password: ${KEYSTORE_PASSWORD} # from the environment
     // key-alias: server
-
+    
     // And refuse to answer over plain HTTP at all:
     @Bean
     SecurityFilterChain https(HttpSecurity http) throws Exception {

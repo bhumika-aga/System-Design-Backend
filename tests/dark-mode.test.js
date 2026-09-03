@@ -9,14 +9,14 @@ const homepage = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const chapter = fs.readFileSync(path.join(root, '01-http-and-cors/html_notes/notes.html'), 'utf8');
 const themeCssText = themeCss;
 const chapterPages = [
-  ...fs.readdirSync(root, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => path.join(root, entry.name, 'html_notes', 'notes.html'))
-    .filter((file) => fs.existsSync(file)),
+    ...fs.readdirSync(root, {withFileTypes: true})
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => path.join(root, entry.name, 'html_notes', 'notes.html'))
+        .filter((file) => fs.existsSync(file)),
 ];
 
 for (const color of ['#17120e', '#1b1511', '#201914', '#251d17', '#f2e8dc', '#b8a898', '#3d332b', '#f0a03c', '#ffc46b', '#8fce87', '#ff7a6b']) {
-  assert.match(themeCss, new RegExp(color, 'i'), `Underhood color ${color} is missing`);
+    assert.match(themeCss, new RegExp(color, 'i'), `Underhood color ${color} is missing`);
 }
 
 assert.match(themeCss, /:root\[data-theme=['"]dark['"]\]/);
@@ -54,10 +54,10 @@ assert.match(themeCssText, /\.ec-ext[\s\S]*background: #1c2a20 !important/);
 assert.match(themeCssText, /\.card-grid \.card[\s\S]*background: #251d17 !important/);
 assert.equal(chapterPages.length, 24, 'all 24 chapter pages should be present');
 for (const page of chapterPages) {
-  const html = fs.readFileSync(page, 'utf8');
-  assert.match(html, /assets\/theme\.css/, `${page} is missing dark-mode CSS`);
-  // theme.js must NOT be deferred: it sets data-theme before the first paint.
-  assert.match(html, /<script src="[^"]*assets\/theme\.js"><\/script>/, `${page} is missing the theme bootstrap script`);
+    const html = fs.readFileSync(page, 'utf8');
+    assert.match(html, /assets\/theme\.css/, `${page} is missing dark-mode CSS`);
+    // theme.js must NOT be deferred: it sets data-theme before the first paint.
+    assert.match(html, /<script src="[^"]*assets\/theme\.js"><\/script>/, `${page} is missing the theme bootstrap script`);
 }
 
 const enhancementsJs = fs.readFileSync(path.join(root, 'assets/enhancements.js'), 'utf8');

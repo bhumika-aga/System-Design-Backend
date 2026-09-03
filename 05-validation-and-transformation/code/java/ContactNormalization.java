@@ -8,15 +8,15 @@ package com.example.validation.normalize;
 // layer sees anything. A record is immutable, so it hands back a new
 // value instead of mutating in place.
 record Contact(String email, String phone) {
-
+    
     Contact normalized() {
         String cleanEmail = email.strip().toLowerCase(Locale.ROOT);
-
+        
         String cleanPhone = phone.strip();
         if (!cleanPhone.startsWith("+")) {
             cleanPhone = "+" + cleanPhone; // inject the missing +
         }
-
+        
         return new Contact(cleanEmail, cleanPhone);
     }
 }

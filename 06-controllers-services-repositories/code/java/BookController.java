@@ -11,13 +11,13 @@ record CreateBookRequest(String title, String author) {
 @RestController
 @RequestMapping("/api/books")
 class BookController {
-
+    
     private final BookService books;
-
+    
     BookController(BookService books) {
         this.books = books;
     }
-
+    
     // Steps 1 and 2 -- extract the body, then bind it -- happen
     // before this method runs. A malformed payload never reaches the
     // code below: Jackson fails, Spring raises

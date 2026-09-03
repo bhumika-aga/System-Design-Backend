@@ -12,24 +12,24 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 class OptimisticLockingController {
-
+    
     @PutMapping("/docs/{id}")
     ResponseEntity<Void> update(
-            @PathVariable String id,
-            @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch,
-            @RequestBody DocPatch patch) {
-
+        @PathVariable String id,
+        @RequestHeader(value = HttpHeaders.IF_MATCH, required = false) String ifMatch,
+        @RequestBody DocPatch patch) {
+        
         Doc doc = docs.get(id);
-
+        
         if (ifMatch == null) { // the ETag the client last saw
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "If-Match required");
+                HttpStatus.BAD_REQUEST, "If-Match required");
         }
         if (!ifMatch.equals(doc.etag())) { // someone changed it first
             throw new ResponseStatusException(
-                    HttpStatus.PRECONDITION_FAILED, "version conflict"); // 412
+                HttpStatus.PRECONDITION_FAILED, "version conflict"); // 412
         }
-
+        
         Doc updated = docs.save(doc.apply(patch)); // saving bumps the version
         return ResponseEntity.ok().eTag(updated.etag()).build();
     }

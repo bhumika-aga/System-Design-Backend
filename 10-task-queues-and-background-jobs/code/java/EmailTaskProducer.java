@@ -10,21 +10,21 @@ record EmailPayload(String userId, String email, String token) {
 
 @Service
 class EmailTaskProducer {
-
+    
     static final String EXCHANGE = "tasks";
     static final String ROUTING_KEY = "email.send_verification";
-
+    
     private final RabbitTemplate rabbit;
-
+    
     EmailTaskProducer(RabbitTemplate rabbit) {
         this.rabbit = rabbit;
     }
-
+    
     // Returns as soon as the broker accepts the message. The caller,
     // an HTTP handler, never waits for the email to be sent.
     void sendVerificationEmail(String userId, String email, String token) {
         rabbit.convertAndSend(EXCHANGE, ROUTING_KEY,
-                new EmailPayload(userId, email, token));
+            new EmailPayload(userId, email, token));
     }
 }
 // Unlike Asynq, the retry count is not attached to the message. It

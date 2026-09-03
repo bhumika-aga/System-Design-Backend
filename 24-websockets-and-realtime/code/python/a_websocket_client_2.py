@@ -1,17 +1,21 @@
-# `websockets` library ,  clean async client
-import asyncio, websockets
+# `websockets` library, clean async client
+import asyncio
+import websockets
+
 
 async def run_client():
     # extra_headers carries auth where the runtime allows it (sec 13);
     # browsers can't set headers, but a backend client can.
     async with websockets.connect(
-        "wss://api.example.com/ws",
-        extra_headers={"Authorization": f"Bearer {token}"},
-    ) as ws:                                 # context manager -> handshake + clean close
-        await ws.send('{"type":"hello"}')    # send a message
+            "wss://api.example.com/ws",
+            extra_headers={"Authorization": f"Bearer {token}"},
+            # context manager -> handshake + clean close
+    ) as ws:
+        await ws.send('{"type":"hello"}')  # send a message
 
-        async for msg in ws:                 # iterate incoming messages
+        async for msg in ws:  # iterate incoming messages
             print("recv:", msg)
     # leaving the `async with` block sends a close frame and shuts down (sec 6)
+
 
 asyncio.run(run_client())

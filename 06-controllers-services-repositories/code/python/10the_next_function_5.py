@@ -9,4 +9,5 @@ def logging_middleware(next):
             return Response("forbidden", status=403)  # stops here
 
         return next(request)  # === next(): continue the chain ===
+
     return wrapper

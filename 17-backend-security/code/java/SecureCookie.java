@@ -5,18 +5,18 @@
 package com.example.security.sessions;
 
 class SessionCookiesDemo {
-
+    
     void demo() throws Exception {
         ResponseCookie session = ResponseCookie.from("SESSION", sessionId)
-                .httpOnly(true) // JavaScript cannot read it
-                .secure(true) // HTTPS only
-                .sameSite("Strict") // never sent cross-site
-                .maxAge(Duration.ofDays(7))
-                .path("/")
-                .build();
-
+                                     .httpOnly(true) // JavaScript cannot read it
+                                     .secure(true) // HTTPS only
+                                     .sameSite("Strict") // never sent cross-site
+                                     .maxAge(Duration.ofDays(7))
+                                     .path("/")
+                                     .build();
+        
         response.addHeader(HttpHeaders.SET_COOKIE, session.toString());
-
+        
         // With Spring Session the flags are configuration, not code, which
         // means they cannot be forgotten on one endpoint out of twelve:
         //

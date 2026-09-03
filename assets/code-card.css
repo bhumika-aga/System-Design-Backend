@@ -32,123 +32,132 @@
    ========================================================================== */
 
 .codeblock {
-  background: var(--code-bg);
-  margin: 20px 0;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 14px 30px -16px var(--shadow);
-  border: 1px solid var(--code-line, #35302a);
+    background: var(--code-bg);
+    margin: 20px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 14px 30px -16px var(--shadow);
+    border: 1px solid var(--code-line, #35302a);
 }
 
 .code-bar {
-  display: flex;
-  align-items: center;
-  background: var(--code-bar);
-  padding: 0 14px;
-  border-bottom: 1px solid var(--code-line, #35302a);
+    display: flex;
+    align-items: center;
+    background: var(--code-bar);
+    padding: 0 14px;
+    border-bottom: 1px solid var(--code-line, #35302a);
 }
 
 .code-bar .dots {
-  display: flex;
-  gap: 7px;
-  margin-right: 14px;
+    display: flex;
+    gap: 7px;
+    margin-right: 14px;
 }
+
 .code-bar .dots i {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  display: block;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: block;
 }
+
 .code-bar .dots i:nth-child(1) {
-  background: #d05a47;
+    background: #d05a47;
 }
+
 .code-bar .dots i:nth-child(2) {
-  background: #cf9f4b;
+    background: #cf9f4b;
 }
+
 .code-bar .dots i:nth-child(3) {
-  background: #5a9a5f;
+    background: #5a9a5f;
 }
 
 .code-tabs {
-  display: flex;
+    display: flex;
 }
 
 .code-tabs button {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 12.5px;
-  font-weight: 600;
-  background: none;
-  border: none;
-  color: var(--code-faint, #9c948a);
-  padding: 13px 18px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: 0.15s;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--code-faint, #9c948a);
+    padding: 13px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: 0.15s;
 }
+
 .code-tabs button:hover {
-  color: var(--code-ink, #e9e2d3);
+    color: var(--code-ink, #e9e2d3);
 }
+
 .code-tabs button.on {
-  color: #fff;
-  border-bottom-color: var(--accent);
+    color: #fff;
+    border-bottom-color: var(--accent);
 }
 
 .code-panel {
-  display: none;
+    display: none;
 }
+
 .code-panel.on {
-  display: block;
+    display: block;
 }
 
 .codeblock pre {
-  margin: 0;
+    margin: 0;
 }
 
 .codeblock pre code {
-  font-family: "JetBrains Mono", ui-monospace, monospace !important;
-  font-size: 13px;
-  line-height: 1.6;
-  padding: 18px 20px !important;
-  display: block;
-  overflow-x: auto;
-  background: var(--code-bg) !important;
+    font-family: "JetBrains Mono", ui-monospace, monospace !important;
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 18px 20px !important;
+    display: block;
+    overflow-x: auto;
+    background: var(--code-bg) !important;
 }
 
 /* Single-language card: a filename in the bar instead of tabs. */
 .codeblock.single .code-bar .filename {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 12.5px;
-  color: var(--code-faint, #9c948a);
-  padding: 13px 4px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    color: var(--code-faint, #9c948a);
+    padding: 13px 4px;
 }
+
 .codeblock.single .code-bar .filename .name {
-  color: var(--code-ink, #e9e2d3);
+    color: var(--code-ink, #e9e2d3);
 }
 
 /* Italic caption under a card. */
 /* A caption inside the bar, naming what the example shows.
    (The bare .code-cap below is the italic caption under a card.) */
 .code-bar .code-cap {
-  margin-left: auto;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 11px;
-  color: var(--code-faint, #9c948a);
-  padding: 13px 0 13px 16px;
-  text-align: right;
-  font-style: normal;
+    margin-left: auto;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--code-faint, #9c948a);
+    padding: 13px 0 13px 16px;
+    text-align: right;
+    font-style: normal;
 }
+
 @media (max-width: 720px) {
-  .code-bar .code-cap {
-    display: none;
-  }
+    .code-bar .code-cap {
+        display: none;
+    }
 }
 
 .code-cap {
-  font-size: 13px;
-  color: var(--ink-soft);
-  font-style: italic;
-  margin: -8px 2px 22px;
-  font-family: "Fraunces", Georgia, serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin: -8px 2px 22px;
+    font-family: "Fraunces", Georgia, serif;
 }
 
 /* ==========================================================================
@@ -168,8 +177,9 @@
    ========================================================================== */
 
 :root[data-theme="light"] .codeblock .hljs {
-  color: #24292f;
+    color: #24292f;
 }
+
 :root[data-theme="light"] .codeblock .hljs-keyword,
 :root[data-theme="light"] .codeblock .hljs-built_in,
 :root[data-theme="light"] .codeblock .hljs-selector-tag,
@@ -177,19 +187,22 @@
 :root[data-theme="light"] .codeblock .hljs-doctag,
 :root[data-theme="light"] .codeblock .hljs-name,
 :root[data-theme="light"] .codeblock .hljs-strong {
-  color: #cf222e;
+    color: #cf222e;
 }
+
 :root[data-theme="light"] .codeblock .hljs-string,
 :root[data-theme="light"] .codeblock .hljs-regexp,
 :root[data-theme="light"] .codeblock .hljs-addition,
 :root[data-theme="light"] .codeblock .hljs-quote {
-  color: #0a3069;
+    color: #0a3069;
 }
+
 :root[data-theme="light"] .codeblock .hljs-comment,
 :root[data-theme="light"] .codeblock .hljs-deletion {
-  color: #59636e;
-  font-style: italic;
+    color: #59636e;
+    font-style: italic;
 }
+
 :root[data-theme="light"] .codeblock .hljs-number,
 :root[data-theme="light"] .codeblock .hljs-literal,
 :root[data-theme="light"] .codeblock .hljs-symbol,
@@ -197,19 +210,21 @@
 :root[data-theme="light"] .codeblock .hljs-attr,
 :root[data-theme="light"] .codeblock .hljs-attribute,
 :root[data-theme="light"] .codeblock .hljs-meta {
-  color: #0550ae;
+    color: #0550ae;
 }
+
 :root[data-theme="light"] .codeblock .hljs-title,
 :root[data-theme="light"] .codeblock .hljs-function .hljs-title,
 :root[data-theme="light"] .codeblock .hljs-subst {
-  color: #6639ba;
+    color: #6639ba;
 }
+
 :root[data-theme="light"] .codeblock .hljs-type,
 :root[data-theme="light"] .codeblock .hljs-class .hljs-title,
 :root[data-theme="light"] .codeblock .hljs-variable,
 :root[data-theme="light"] .codeblock .hljs-template-variable,
 :root[data-theme="light"] .codeblock .hljs-params {
-  color: #953800;
+    color: #953800;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -223,5 +238,5 @@
 :root:not([data-theme="light"]) .codeblock .hljs-comment,
 :root:not([data-theme="light"]) .codeblock .hljs-quote,
 :root:not([data-theme="light"]) .codeblock .hljs-deletion {
-  color: #7f8899;
+    color: #7f8899;
 }

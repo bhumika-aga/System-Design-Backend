@@ -8,10 +8,10 @@ package com.example.validation.types;
 // to false, so "absent" and "false" become indistinguishable;
 // `Boolean` stays null when absent and @NotNull can catch it.
 record TypePayload(
-                @NotBlank String stringField,
-                @NotNull Double numberField,
-                @NotEmpty List<@NotBlank String> arrayField, // and each item
-                @NotNull Boolean boolField) {
+    @NotBlank String stringField,
+    @NotNull Double numberField,
+    @NotEmpty List<@NotBlank String> arrayField, // and each item
+    @NotNull Boolean boolField) {
 }
 
 // Reject stray keys rather than ignoring them. application.yml:

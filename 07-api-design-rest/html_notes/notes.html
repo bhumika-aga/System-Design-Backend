@@ -214,10 +214,11 @@
         .urlbar {
             font-family: "JetBrains Mono", ui-monospace, monospace;
             font-size: 0.92rem;
-            background: var(--code-bg);
+            /* terminal-style bar: dark in every theme, like .wire */
+            background: #1a1813;
+            color: #e9e2d3;
             border-radius: 10px;
             padding: 18px 16px;
-            color: var(--code-ink);
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
@@ -1486,7 +1487,7 @@
                 ><span class="useg s3">/v1</span
                 ><span class="useg s4">/books/harry-potter</span
                 ><span class="useg s5">?sort=name</span
-                ><span style="color: var(--code-faint)">#reviews</span>
+                ><span class="useg" style="color: #9c948a">#reviews</span>
                 </div>
                 <div class="ulegend">
                     <div>
@@ -1515,7 +1516,7 @@
                         for filters &amp; options.
                     </div>
                     <div>
-                <span class="sw" style="background: var(--code-faint)"></span
+                <span class="sw" style="background: #9c948a"></span
                 ><b style="font-weight: 600">Fragment</b>: scrolls the browser
                         to a section.
                     </div>

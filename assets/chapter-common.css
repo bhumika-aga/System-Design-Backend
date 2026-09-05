@@ -638,9 +638,11 @@ ol li::before {
     color: var(--code-ink);
 }
 
+/* An "on the wire" panel: a terminal-style surface in every theme, so it
+   does not follow the code tokens, which invert between light and dark. */
 .wire {
-    background: var(--code-bg);
-    color: var(--code-ink);
+    background: #1a1813;
+    color: #e9e2d3;
     font-family: "JetBrains Mono", ui-monospace, monospace;
     font-size: 0.79rem;
     line-height: 1.7;
@@ -665,7 +667,7 @@ ol li::before {
 }
 
 .wire .cm {
-    color: #7d7468;
+    color: #9c9184;
     font-style: italic;
 }
 

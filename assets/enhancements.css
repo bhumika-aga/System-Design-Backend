@@ -289,14 +289,14 @@
     --ink-soft: #5b5347;
     --ink-faint: #665e51;
 
-    --accent: #b8402e;
+    --accent: #a33726;
     --on-accent: #ffffff; /* text ON an accent fill */
     --accent-2: #8f2f20;
-    --accent-rgb: 184, 64, 46;
+    --accent-rgb: 163, 55, 38;
     --accent-hover: #8f2f20;
-    --rust: #b8402e;
+    --rust: #a33726;
     --rust-deep: #8f2f20;
-    --green: #3f6f4e;
+    --green: #356042;
     --teal: #3f6f4e;
     --blue: #37607f;
     --gold: #7d5719;
@@ -1078,6 +1078,32 @@ pre::-webkit-scrollbar-thumb:hover,
     color: #7fb0c9;
 }
 
+/* The bar turns light in the light theme, so the dots need darker inks
+   to stay distinguishable against it. */
+:root[data-theme="light"] .lang-java {
+    color: #a8501a;
+}
+
+:root[data-theme="light"] .lang-py {
+    color: #8a6100;
+}
+
+:root[data-theme="light"] .lang-yaml {
+    color: #2f6b52;
+}
+
+:root[data-theme="light"] .lang-sql {
+    color: #7c3f9e;
+}
+
+:root[data-theme="light"] .lang-bash {
+    color: #4a6b2f;
+}
+
+:root[data-theme="light"] .lang-http {
+    color: #0550ae;
+}
+
 /* ---------- Arrow icon (replaces the arrow glyphs) ---------- */
 .ico-arrow {
     display: inline-block;
@@ -1684,7 +1710,7 @@ body.is-homepage.drawer-open .masterclass-dock-bar {
     font-family: var(--bfp-font-mono);
     font-size: 13px;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--accent-2);
     background: rgba(var(--accent-rgb), 0.08);
     border: 1px solid rgba(var(--accent-rgb), 0.22);
     padding: 5px 10px;
@@ -2795,6 +2821,12 @@ pre code,
 :root[data-theme="light"] .cm {
     color: #6e7781 !important;
     font-style: italic;
+}
+
+/* .wire is a terminal-style panel that stays dark in every theme, so the
+   light code palette above must not reach inside it. */
+:root[data-theme="light"] .wire .cm {
+    color: #9c9184 !important;
 }
 
 :root[data-theme="light"] .num2 {

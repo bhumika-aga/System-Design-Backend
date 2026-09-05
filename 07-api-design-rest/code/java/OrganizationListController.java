@@ -17,7 +17,8 @@ class OrganizationListController {
         // string, so the "sane defaults" are declared rather than coded.
         Page<Organization> page = (status == null)
                                       ? orgs.findAll(pageable)
-                                      : orgs.findByStatus(status, pageable); // ?status=active
+                                      // ?status=active
+                                      : orgs.findByStatus(status, pageable);
         
         return new ListResponse<>(
             page.getContent(),
